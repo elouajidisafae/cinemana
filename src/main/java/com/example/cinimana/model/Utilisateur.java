@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -24,6 +25,13 @@ public class Utilisateur extends BaseEntity {
     @Id
     @Column(length = 10, nullable = false, unique = true)
     private String id;
+
+    @Column(unique = true)
+    private String cin;
+
+    private LocalDate dateNaissance;
+
+    private LocalDate dateEmbauche;
 
     @Column(nullable = false)
     private String nom;

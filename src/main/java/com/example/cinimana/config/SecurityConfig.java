@@ -62,8 +62,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "http://localhost:5174"
-        ));
+                "http://localhost:5174"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -93,14 +92,15 @@ public class SecurityConfig {
 
                 // Autorisations par rôle
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ CORRECTION : Lister explicitement les chemins publics. /api/auth/reset-initial-password est exclu.
+                        // ✅ CORRECTION : Lister explicitement les chemins publics.
+                        // /api/auth/reset-initial-password est exclu.
                         .requestMatchers(
                                 "/api/auth/client/login",
                                 "/api/auth/internal/login",
                                 "/api/auth/register",
                                 "/test-email",
-                                "/", "/login", "/register", "/static/**", "/css/**", "/js/**"
-                        ).permitAll()
+                                "/", "/login", "/register", "/static/**", "/css/**", "/js/**", "/uploads/**")
+                        .permitAll()
 
                         // Protected by role
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -108,9 +108,9 @@ public class SecurityConfig {
                         .requestMatchers("/caissier/**").hasRole("CAISSIER")
                         .requestMatchers("/client/**").hasRole("CLIENT")
 
-                        // ✅ TOUS les autres chemins (dont /api/auth/reset-initial-password) nécessitent AUTHENTICATION.
-                        .anyRequest().authenticated()
-                )
+                        // ✅ TOUS les autres chemins (dont /api/auth/reset-initial-password) nécessitent
+                        // AUTHENTICATION.
+                        .anyRequest().authenticated())
 
                 // Authentication provider + filtre JWT
                 .authenticationProvider(authenticationProvider())

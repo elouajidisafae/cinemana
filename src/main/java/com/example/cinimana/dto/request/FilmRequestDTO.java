@@ -11,8 +11,10 @@ import java.time.LocalDate;
 public record FilmRequestDTO(
         @NotBlank(message = "Le titre est obligatoire.") String titre,
         @NotBlank(message = "La description est obligatoire.") String description,
-        @NotNull(message = "La durée est obligatoire.") @Min(value = 1, message = "La durée doit être supérieure à zéro.") Integer duree, // en minutes
+        @NotNull(message = "La durée est obligatoire.") @Min(value = 1, message = "La durée doit être supérieure à zéro.") Integer duree, // en
+        // minutes
         @NotBlank(message = "Le genre est obligatoire.") String genre,
         @NotNull(message = "La date de sortie est obligatoire.") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateSortie,
-        String afficheUrl
-) {}
+        String afficheUrl,
+        String trailerUrl) {
+}

@@ -55,6 +55,9 @@ public class AdminUserService {
                 user.getNom(),
                 user.getPrenom(),
                 user.getEmail(),
+                user.getCin(),
+                user.getDateNaissance(),
+                user.getDateEmbauche(),
                 user.getRole(),
                 user.isActif(),
                 user.isPremiereConnexion()
@@ -107,6 +110,9 @@ public class AdminUserService {
         user.setNom(dto.nom());
         user.setPrenom(dto.prenom());
         user.setEmail(dto.email());
+        user.setCin(dto.cin());
+        user.setDateNaissance(dto.dateNaissance());
+        user.setDateEmbauche(dto.dateEmbauche());
         user.setMotDePasse(passwordEncoder.encode(rawPassword));
         user.setRole(dto.role());
         user.setActif(true);
@@ -142,6 +148,9 @@ public class AdminUserService {
         // Mise à jour des champs modifiables
         user.setNom(dto.nom());
         user.setPrenom(dto.prenom());
+        user.setCin(dto.cin());
+        user.setDateNaissance(dto.dateNaissance());
+        user.setDateEmbauche(dto.dateEmbauche());
 
         // Modification de l'email si différent
         if (!user.getEmail().equals(dto.email())) {
@@ -232,4 +241,4 @@ public class AdminUserService {
 
         logger.info("Mot de passe initial réinitialisé pour l'utilisateur: {}", email);
     }
-    }
+}

@@ -35,6 +35,8 @@ public class Film extends BaseEntity {
 
     private String afficheUrl;
 
+    private String trailerUrl;
+
     @Column(nullable = false)
     private boolean actif = true;
 

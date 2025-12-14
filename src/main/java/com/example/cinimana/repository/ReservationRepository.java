@@ -19,6 +19,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByStatut(StatutReservation statut);
 
+    long countByStatut(StatutReservation statut);
+
     List<Reservation> findByClientAndStatut(Client client, StatutReservation statut);
 
     @Query("SELECT r FROM Reservation r WHERE r.client.id = :clientId ORDER BY r.dateReservation DESC")
@@ -56,4 +58,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT HOUR(r.dateReservation), COUNT(r) FROM Reservation r GROUP BY HOUR(r.dateReservation) ORDER BY HOUR(r.dateReservation)")
     List<Object[]> countReservationsByHour();
+
+    @Query("SELECT r FROM Reservation r WHERE " +
+            "(:search IS NULL OR LOWER(r.client.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(r.client.prenom) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
+            +
+            "((:statuses) IS NULL OR r.statut IN (:statuses)) AND " +
+            "(cast(:debut as timestamp) IS NULL OR r.dateReservation >= :debut) AND " +
+            "(cast(:fin as timestamp) IS NULL OR r.dateReservation <= :fin) " +
+            "ORDER BY r.dateReservation DESC")
+    List<Reservation> findFiltered(@Param("search") String search,
+                                   @Param("statuses") List<StatutReservation> statuses,
+                                   @Param("debut") LocalDateTime debut,
+                                   @Param("fin") LocalDateTime fin);
 }

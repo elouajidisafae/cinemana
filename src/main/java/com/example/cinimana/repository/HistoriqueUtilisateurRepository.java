@@ -20,6 +20,8 @@ public interface HistoriqueUtilisateurRepository extends JpaRepository<Historiqu
 
     List<HistoriqueUtilisateur> findByOperation(TypeOperation operation);
 
+    long countByOperation(TypeOperation operation);
+
     @Query("SELECT h FROM HistoriqueUtilisateur h WHERE h.utilisateur.id = :utilisateurId ORDER BY h.dateOperation DESC")
     List<HistoriqueUtilisateur> findByUtilisateurIdOrderByDateOperationDesc(
             @Param("utilisateurId") String utilisateurId);
@@ -31,4 +33,16 @@ public interface HistoriqueUtilisateurRepository extends JpaRepository<Historiqu
     long countByAdminIdAndOperation(Long adminId, TypeOperation operation);
 
     List<HistoriqueUtilisateur> findTop5ByOrderByDateOperationDesc();
+
+    @Query("SELECT h FROM HistoriqueUtilisateur h WHERE " +
+            "(:search IS NULL OR LOWER(h.admin.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.admin.prenom) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
+            +
+            "((:operations) IS NULL OR h.operation IN (:operations)) AND " +
+            "(cast(:debut as timestamp) IS NULL OR h.dateOperation >= :debut) AND " +
+            "(cast(:fin as timestamp) IS NULL OR h.dateOperation <= :fin) " +
+            "ORDER BY h.dateOperation DESC")
+    List<HistoriqueUtilisateur> findFiltered(@Param("search") String search,
+                                             @Param("operations") List<TypeOperation> operations,
+                                             @Param("debut") LocalDateTime debut,
+                                             @Param("fin") LocalDateTime fin);
 }

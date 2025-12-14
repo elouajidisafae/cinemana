@@ -70,68 +70,83 @@ public class DashboardService {
 
         // 1. Historique Utilisateurs
         historiqueUtilisateurRepository.findTop5ByOrderByDateOperationDesc()
-                .forEach(h -> activities.add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
-                        h.getId(),
-                        "Utilisateur",
-                        h.getUtilisateur().getNom() + " " + h.getUtilisateur().getPrenom(),
-                        h.getOperation().name(),
-                        h.getDateOperation(),
-                        h.getAdmin().getNom() + " " + h.getAdmin().getPrenom())));
+                .forEach(h -> activities
+                        .add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                                h.getId(),
+                                "Utilisateur",
+                                h.getUtilisateur().getNom() + " "
+                                        + h.getUtilisateur().getPrenom(),
+                                h.getOperation().name(),
+                                h.getDateOperation(),
+                                h.getAdmin().getNom() + " "
+                                        + h.getAdmin().getPrenom())));
 
         // 2. Historique Films
         historiqueFilmRepository.findTop5ByOrderByDateOperationDesc()
-                .forEach(h -> activities.add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
-                        h.getId(),
-                        "Film",
-                        h.getFilm().getTitre(),
-                        h.getOperation().name(),
-                        h.getDateOperation(),
-                        h.getAdmin().getNom() + " " + h.getAdmin().getPrenom())));
+                .forEach(h -> activities
+                        .add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                                h.getId(),
+                                "Film",
+                                h.getFilm().getTitre(),
+                                h.getOperation().name(),
+                                h.getDateOperation(),
+                                h.getAdmin().getNom() + " "
+                                        + h.getAdmin().getPrenom())));
 
         // 3. Historique Salles
         historiqueSalleRepository.findTop5ByOrderByDateOperationDesc()
-                .forEach(h -> activities.add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
-                        h.getId(),
-                        "Salle",
-                        h.getSalle().getNom(),
-                        h.getOperation().name(),
-                        h.getDateOperation(),
-                        h.getAdmin().getNom() + " " + h.getAdmin().getPrenom())));
+                .forEach(h -> activities
+                        .add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                                h.getId(),
+                                "Salle",
+                                h.getSalle().getNom(),
+                                h.getOperation().name(),
+                                h.getDateOperation(),
+                                h.getAdmin().getNom() + " "
+                                        + h.getAdmin().getPrenom())));
 
         // 4. Historique Séances
         historiqueSeanceRepository.findTop5ByOrderByDateOperationDesc()
-                .forEach(h -> activities.add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
-                        h.getId(),
-                        "Séance",
-                        h.getSeance().getFilm().getTitre() + " (" + h.getSeance().getDateHeure() + ")",
-                        h.getOperation().name(),
-                        h.getDateOperation(),
-                        h.getCommercial().getNom() + " " + h.getCommercial().getPrenom())));
+                .forEach(h -> activities
+                        .add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                                h.getId(),
+                                "Séance",
+                                h.getSeance().getFilm().getTitre() + " ("
+                                        + h.getSeance().getDateHeure() + ")",
+                                h.getOperation().name(),
+                                h.getDateOperation(),
+                                h.getCommercial().getNom() + " "
+                                        + h.getCommercial().getPrenom())));
 
         // 5. Historique Réservations
         reservationRepository.findTop5ByOrderByDateReservationDesc()
-                .forEach(r -> activities.add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
-                        r.getId(),
-                        "Réservation",
-                        r.getSeance().getFilm().getTitre() + " - " + r.getNombrePlace() + " places",
-                        r.getStatut().name(),
-                        r.getDateReservation(),
-                        r.getClient().getNom() + " " + r.getClient().getPrenom())));
+                .forEach(r -> activities
+                        .add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                                r.getId(),
+                                "Réservation",
+                                r.getSeance().getFilm().getTitre() + " - "
+                                        + r.getNombrePlace() + " places",
+                                r.getStatut().name(),
+                                r.getDateReservation(),
+                                r.getClient().getNom() + " "
+                                        + r.getClient().getPrenom())));
 
         // 6. Historique Clients (Nouveaux Inscrits)
         clientRepository.findTop5ByOrderByCreatedAtDesc()
-                .forEach(c -> activities.add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
-                        c.getId(),
-                        "Client",
-                        c.getNom() + " " + c.getPrenom(),
-                        "INSCRIPTION",
-                        c.getCreatedAt(),
-                        "Client Lui-même"))); // Ou "Système"
+                .forEach(c -> activities
+                        .add(new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                                c.getId(),
+                                "Client",
+                                c.getNom() + " " + c.getPrenom(),
+                                "INSCRIPTION",
+                                c.getCreatedAt(),
+                                "Client Lui-même"))); // Ou "Système"
 
         // Trier par date décroissante et garder les 10 premiers
         return activities.stream()
                 .sorted(java.util.Comparator.comparing(
-                        com.example.cinimana.dto.response.HistoriqueResponseDTO::dateOperation).reversed())
+                                com.example.cinimana.dto.response.HistoriqueResponseDTO::dateOperation)
+                        .reversed())
                 .limit(10)
                 .collect(java.util.stream.Collectors.toList());
     }
@@ -146,7 +161,8 @@ public class DashboardService {
         // 2. Top 5 Films
         java.util.List<com.example.cinimana.dto.response.DashboardChartsDTO.TopFilmDTO> topFilms = new java.util.ArrayList<>();
         reservationRepository.findTopFilmsByReservationCount().stream().limit(5).forEach(obj -> {
-            topFilms.add(new com.example.cinimana.dto.response.DashboardChartsDTO.TopFilmDTO((String) obj[0],
+            topFilms.add(new com.example.cinimana.dto.response.DashboardChartsDTO.TopFilmDTO(
+                    (String) obj[0],
                     (Long) obj[1]));
         });
 
@@ -157,5 +173,116 @@ public class DashboardService {
         });
 
         return new com.example.cinimana.dto.response.DashboardChartsDTO(statusStats, topFilms, peakHours);
+    }
+
+    // --- HISTORIQUE FILTRÉ ---
+
+    public java.util.List<com.example.cinimana.dto.response.HistoriqueResponseDTO> getFilteredUserHistory(
+            String search, java.util.List<TypeOperation> operations, java.time.LocalDateTime start,
+            java.time.LocalDateTime end) {
+        return historiqueUtilisateurRepository.findFiltered(search, operations, start, end).stream()
+                .map(h -> new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                        h.getId(), h.getUtilisateur().getRole().name(), // Mapping to Role
+                        h.getUtilisateur().getNom() + " " + h.getUtilisateur().getPrenom(),
+                        h.getOperation().name(), h.getDateOperation(),
+                        h.getAdmin().getNom() + " " + h.getAdmin().getPrenom()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public java.util.List<com.example.cinimana.dto.response.HistoriqueResponseDTO> getFilteredFilmHistory(
+            String search, java.util.List<TypeOperation> operations, java.time.LocalDateTime start,
+            java.time.LocalDateTime end) {
+        return historiqueFilmRepository.findFiltered(search, operations, start, end).stream()
+                .map(h -> new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                        h.getId(), "Film", h.getFilm().getTitre(),
+                        h.getOperation().name(), h.getDateOperation(),
+                        h.getAdmin().getNom() + " " + h.getAdmin().getPrenom()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public java.util.Map<String, Long> getGlobalFilmHistoryStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("CREATION", historiqueFilmRepository.countByOperation(TypeOperation.CREATION));
+        stats.put("MODIFICATION", historiqueFilmRepository.countByOperation(TypeOperation.MODIFICATION));
+        stats.put("SUPPRESSION", historiqueFilmRepository.countByOperation(TypeOperation.SUPPRESSION));
+        return stats;
+    }
+
+    public java.util.List<com.example.cinimana.dto.response.HistoriqueResponseDTO> getFilteredSalleHistory(
+            String search, java.util.List<TypeOperation> operations, java.time.LocalDateTime start,
+            java.time.LocalDateTime end) {
+        return historiqueSalleRepository.findFiltered(search, operations, start, end).stream()
+                .map(h -> new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                        h.getId(), "Salle", h.getSalle().getNom(),
+                        h.getOperation().name(), h.getDateOperation(),
+                        h.getAdmin().getNom() + " " + h.getAdmin().getPrenom()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public java.util.Map<String, Long> getGlobalSalleHistoryStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("CREATION", historiqueSalleRepository.countByOperation(TypeOperation.CREATION));
+        stats.put("MODIFICATION", historiqueSalleRepository.countByOperation(TypeOperation.MODIFICATION));
+        stats.put("SUPPRESSION", historiqueSalleRepository.countByOperation(TypeOperation.SUPPRESSION));
+        return stats;
+    }
+
+    public java.util.List<com.example.cinimana.dto.response.HistoriqueResponseDTO> getFilteredSeanceHistory(
+            String search, java.util.List<TypeOperation> operations, java.time.LocalDateTime start,
+            java.time.LocalDateTime end) {
+        return historiqueSeanceRepository.findFiltered(search, operations, start, end).stream()
+                .map(h -> new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                        h.getId(), "Séance",
+                        h.getSeance().getFilm().getTitre() + " (" + h.getSeance().getDateHeure()
+                                + ")",
+                        h.getOperation().name(), h.getDateOperation(),
+                        h.getCommercial().getNom() + " " + h.getCommercial().getPrenom()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public java.util.Map<String, Long> getGlobalSeanceHistoryStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("CREATION", historiqueSeanceRepository.countByOperation(TypeOperation.CREATION));
+        stats.put("MODIFICATION", historiqueSeanceRepository.countByOperation(TypeOperation.MODIFICATION));
+        stats.put("SUPPRESSION", historiqueSeanceRepository.countByOperation(TypeOperation.SUPPRESSION));
+        return stats;
+    }
+
+    public java.util.List<com.example.cinimana.dto.response.HistoriqueResponseDTO> getFilteredReservations(
+            String search, java.util.List<com.example.cinimana.model.StatutReservation> statuses,
+            java.time.LocalDateTime start,
+            java.time.LocalDateTime end) {
+        return reservationRepository.findFiltered(search, statuses, start, end).stream()
+                .map(r -> new com.example.cinimana.dto.response.HistoriqueResponseDTO(
+                        r.getId(), "Réservation",
+                        r.getSeance().getFilm().getTitre() + " - " + r.getNombrePlace()
+                                + " places",
+                        r.getStatut().name(), r.getDateReservation(),
+                        r.getClient().getNom() + " " + r.getClient().getPrenom()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public java.util.Map<String, Long> getGlobalReservationStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("VALIDEE", reservationRepository
+                .countByStatut(com.example.cinimana.model.StatutReservation.VALIDEE));
+        stats.put("EN_ATTENTE", reservationRepository
+                .countByStatut(com.example.cinimana.model.StatutReservation.EN_ATTENTE));
+        stats.put("ANNULEE", reservationRepository
+                .countByStatut(com.example.cinimana.model.StatutReservation.ANNULEE));
+        return stats;
+    }
+
+    public java.util.List<com.example.cinimana.model.Client> getFilteredClients(
+            String search, java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        return clientRepository.searchClients(search, start, end);
+    }
+
+    public java.util.Map<String, Long> getGlobalUserHistoryStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("CREATION", historiqueUtilisateurRepository.countByOperation(TypeOperation.CREATION));
+        stats.put("MODIFICATION", historiqueUtilisateurRepository.countByOperation(TypeOperation.MODIFICATION));
+        stats.put("SUPPRESSION", historiqueUtilisateurRepository.countByOperation(TypeOperation.SUPPRESSION));
+        return stats;
     }
 }

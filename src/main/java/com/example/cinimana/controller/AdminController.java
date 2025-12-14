@@ -21,6 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.format.annotation.DateTimeFormat;
+import com.example.cinimana.model.TypeOperation;
+import com.example.cinimana.model.StatutReservation;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -126,5 +130,85 @@ public class AdminController {
     @GetMapping("/dashboard/charts")
     public ResponseEntity<com.example.cinimana.dto.response.DashboardChartsDTO> getDashboardCharts() {
         return ResponseEntity.ok(dashboardService.getDashboardCharts());
+    }
+
+    // --- NOUVEAUX ENDPOINTS HISTORIQUE & MONITORING ---
+
+    @GetMapping("/historique/users")
+    public ResponseEntity<List<com.example.cinimana.dto.response.HistoriqueResponseDTO>> getFilteredUserHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        return ResponseEntity.ok(dashboardService.getFilteredUserHistory(search, operations, start, end));
+    }
+
+    @GetMapping("/historique/users/stats")
+    public ResponseEntity<java.util.Map<String, Long>> getGlobalUserHistoryStats() {
+        return ResponseEntity.ok(dashboardService.getGlobalUserHistoryStats());
+    }
+
+    @GetMapping("/historique/films")
+    public ResponseEntity<List<com.example.cinimana.dto.response.HistoriqueResponseDTO>> getFilteredFilmHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        return ResponseEntity.ok(dashboardService.getFilteredFilmHistory(search, operations, start, end));
+    }
+
+    @GetMapping("/historique/films/stats")
+    public ResponseEntity<java.util.Map<String, Long>> getGlobalFilmHistoryStats() {
+        return ResponseEntity.ok(dashboardService.getGlobalFilmHistoryStats());
+    }
+
+    @GetMapping("/historique/salles")
+    public ResponseEntity<List<com.example.cinimana.dto.response.HistoriqueResponseDTO>> getFilteredSalleHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        return ResponseEntity.ok(dashboardService.getFilteredSalleHistory(search, operations, start, end));
+    }
+
+    @GetMapping("/historique/salles/stats")
+    public ResponseEntity<java.util.Map<String, Long>> getGlobalSalleHistoryStats() {
+        return ResponseEntity.ok(dashboardService.getGlobalSalleHistoryStats());
+    }
+
+    @GetMapping("/historique/seances")
+    public ResponseEntity<List<com.example.cinimana.dto.response.HistoriqueResponseDTO>> getFilteredSeanceHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        return ResponseEntity.ok(dashboardService.getFilteredSeanceHistory(search, operations, start, end));
+    }
+
+    @GetMapping("/historique/seances/stats")
+    public ResponseEntity<java.util.Map<String, Long>> getGlobalSeanceHistoryStats() {
+        return ResponseEntity.ok(dashboardService.getGlobalSeanceHistoryStats());
+    }
+
+    @GetMapping("/historique/reservations")
+    public ResponseEntity<List<com.example.cinimana.dto.response.HistoriqueResponseDTO>> getFilteredReservations(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<StatutReservation> statuses,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        return ResponseEntity.ok(dashboardService.getFilteredReservations(search, statuses, start, end));
+    }
+
+    @GetMapping("/historique/reservations/stats")
+    public ResponseEntity<java.util.Map<String, Long>> getGlobalReservationStats() {
+        return ResponseEntity.ok(dashboardService.getGlobalReservationStats());
+    }
+
+    @GetMapping("/clients")
+    public ResponseEntity<List<com.example.cinimana.model.Client>> getFilteredClients(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        return ResponseEntity.ok(dashboardService.getFilteredClients(search, start, end));
     }
 }

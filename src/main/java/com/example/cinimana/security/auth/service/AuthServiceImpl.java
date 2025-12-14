@@ -65,6 +65,7 @@ public class AuthServiceImpl implements AuthService {
                 token,
                 "CLIENT",
                 getNomComplet(request.email()),
+                request.email(), // ✅ Email
                 getUserId(request.email()),
                 false // ✅ Ajout du flag pour le constructeur, false pour les clients
         );
@@ -100,6 +101,7 @@ public class AuthServiceImpl implements AuthService {
                 token,
                 role,
                 getNomComplet(request.email()),
+                request.email(), // ✅ Email
                 getUserId(request.email()),
                 isFirstLogin // ✅ Ajout du flag pour la redirection frontend
         );

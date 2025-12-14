@@ -19,6 +19,8 @@ public interface HistoriqueSeanceRepository extends JpaRepository<HistoriqueSean
 
     List<HistoriqueSeance> findByOperation(TypeOperation operation);
 
+    long countByOperation(TypeOperation operation);
+
     @Query("SELECT h FROM HistoriqueSeance h WHERE h.seance.id = :seanceId ORDER BY h.dateOperation DESC")
     List<HistoriqueSeance> findBySeanceIdOrderByDateOperationDesc(@Param("seanceId") Long seanceId);
 
@@ -30,4 +32,16 @@ public interface HistoriqueSeanceRepository extends JpaRepository<HistoriqueSean
                                                       @Param("fin") LocalDateTime fin);
 
     List<HistoriqueSeance> findTop5ByOrderByDateOperationDesc();
+
+    @Query("SELECT h FROM HistoriqueSeance h WHERE " +
+            "(:search IS NULL OR LOWER(h.commercial.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.commercial.prenom) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
+            +
+            "((:operations) IS NULL OR h.operation IN (:operations)) AND " +
+            "(cast(:debut as timestamp) IS NULL OR h.dateOperation >= :debut) AND " +
+            "(cast(:fin as timestamp) IS NULL OR h.dateOperation <= :fin) " +
+            "ORDER BY h.dateOperation DESC")
+    List<HistoriqueSeance> findFiltered(@Param("search") String search,
+                                        @Param("operations") List<TypeOperation> operations,
+                                        @Param("debut") LocalDateTime debut,
+                                        @Param("fin") LocalDateTime fin);
 }

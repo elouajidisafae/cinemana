@@ -9,6 +9,9 @@ public record UtilisateurResponseDTO(
         String nom,
         String prenom,
         String email,
+        String cin,
+        java.time.LocalDate dateNaissance,
+        java.time.LocalDate dateEmbauche,
         Role role,
         boolean actif,
         boolean premiereConnexion// ✅ CRUCIAL pour savoir si on doit proposer "Activer" ou "Désactiver"

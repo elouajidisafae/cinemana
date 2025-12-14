@@ -32,8 +32,8 @@ public class AdminFilmService {
                 film.getGenre(),
                 film.getDateSortie(),
                 film.getAfficheUrl(),
-                film.isActif()
-        );
+                film.getTrailerUrl(),
+                film.isActif());
     }
 
     @Transactional
@@ -50,6 +50,7 @@ public class AdminFilmService {
         film.setGenre(dto.genre());
         film.setDateSortie(dto.dateSortie());
         film.setAfficheUrl(dto.afficheUrl());
+        film.setTrailerUrl(dto.trailerUrl());
         film.setActif(true);
 
         filmRepository.save(film);
@@ -73,6 +74,7 @@ public class AdminFilmService {
         film.setGenre(dto.genre());
         film.setDateSortie(dto.dateSortie());
         film.setAfficheUrl(dto.afficheUrl());
+        film.setTrailerUrl(dto.trailerUrl());
 
         filmRepository.save(film);
 
