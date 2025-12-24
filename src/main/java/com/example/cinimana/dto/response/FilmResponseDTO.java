@@ -11,6 +11,7 @@ public record FilmResponseDTO(
         LocalDate dateSortie,
         String afficheUrl,
         String trailerUrl,
+        String ageLimite,
         boolean actif // Statut Soft Delete pour l'affichage Admin
 ) {
 }

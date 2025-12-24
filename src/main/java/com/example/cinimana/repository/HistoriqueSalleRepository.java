@@ -31,7 +31,7 @@ public interface HistoriqueSalleRepository extends JpaRepository<HistoriqueSalle
     List<HistoriqueSalle> findTop5ByOrderByDateOperationDesc();
 
     @Query("SELECT h FROM HistoriqueSalle h WHERE " +
-            "(:search IS NULL OR LOWER(h.admin.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.admin.prenom) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
+            "(:search IS NULL OR LOWER(h.admin.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.admin.prenom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.salle.nom) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
             +
             "((:operations) IS NULL OR h.operation IN (:operations)) AND " +
             "(cast(:debut as timestamp) IS NULL OR h.dateOperation >= :debut) AND " +

@@ -29,8 +29,7 @@ public class AdminUserService {
 
     // Pattern de validation du mot de passe
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$"
-    );
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$");
 
     private final UtilisateurRepository utilisateurRepository;
     private final HistoriqueUtilisateurRepository historiqueUtilisateurRepository;
@@ -60,8 +59,7 @@ public class AdminUserService {
                 user.getDateEmbauche(),
                 user.getRole(),
                 user.isActif(),
-                user.isPremiereConnexion()
-        );
+                user.isPremiereConnexion());
     }
 
     // --- 1. CRUD : AJOUT ---
@@ -90,8 +88,7 @@ public class AdminUserService {
             if (!PASSWORD_PATTERN.matcher(dto.motDePasse()).matches()) {
                 throw new RuntimeException(
                         "Le mot de passe doit contenir au moins 8 caractères, " +
-                                "une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&)"
-                );
+                                "une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&)");
             }
             rawPassword = dto.motDePasse();
         }
@@ -101,8 +98,7 @@ public class AdminUserService {
             case COMMERCIAL -> new Commercial();
             case CAISSIER -> new Caissier();
             case ADMIN, CLIENT -> throw new IllegalArgumentException(
-                    "Le rôle " + dto.role() + " ne peut pas être créé via cette API"
-            );
+                    "Le rôle " + dto.role() + " ne peut pas être créé via cette API");
         };
 
         // Remplissage des données
@@ -162,15 +158,8 @@ public class AdminUserService {
 
         user.setRole(dto.role());
 
-        // Modification du mot de passe si fourni
-        if (dto.motDePasse() != null && !dto.motDePasse().isBlank()) {
-            if (!PASSWORD_PATTERN.matcher(dto.motDePasse()).matches()) {
-                throw new RuntimeException("Le mot de passe ne respecte pas les critères de sécurité.");
-            }
-            user.setMotDePasse(passwordEncoder.encode(dto.motDePasse()));
-            user.setPremiereConnexion(true);
-            logger.info("Mot de passe modifié pour l'utilisateur: {}", id);
-        }
+        // Note: Le mot de passe n'est plus modifiable via cette méthode
+        // Pour réinitialiser le mot de passe, utiliser la réactivation
 
         utilisateurRepository.save(user);
         logHistorique(user, TypeOperation.MODIFICATION);
@@ -194,8 +183,22 @@ public class AdminUserService {
             user.setActif(nouvelEtat);
 
             if (nouvelEtat) {
+                // Réactivation : générer un nouveau mot de passe et envoyer par email
+                String newPassword = passwordGeneratorService.generateRandomPassword();
+                user.setMotDePasse(passwordEncoder.encode(newPassword));
                 user.setPremiereConnexion(true);
-                logger.info("Utilisateur réactivé: {}", id);
+
+                logger.info("Utilisateur réactivé avec nouveau mot de passe: {}", id);
+
+                // Envoyer l'email avec le nouveau mot de passe
+                try {
+                    emailService.sendInitialPasswordEmail(user.getEmail(), newPassword, user.getId());
+                    logger.info("Email de réactivation envoyé à: {}", user.getEmail());
+                } catch (Exception e) {
+                    logger.error("Erreur lors de l'envoi de l'email de réactivation à {}: {}", user.getEmail(),
+                            e.getMessage());
+                    // Ne pas faire échouer la transaction pour un problème d'email
+                }
             } else {
                 logger.info("Utilisateur désactivé: {}", id);
             }
@@ -226,8 +229,7 @@ public class AdminUserService {
         if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
             throw new RuntimeException(
                     "Le mot de passe doit contenir au moins 8 caractères, " +
-                            "une majuscule, une minuscule, un chiffre et un caractère spécial"
-            );
+                            "une majuscule, une minuscule, un chiffre et un caractère spécial");
         }
 
         // 🔹 Encoder le mot de passe avec BCrypt

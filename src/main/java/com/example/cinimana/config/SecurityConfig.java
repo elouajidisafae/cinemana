@@ -98,15 +98,16 @@ public class SecurityConfig {
                                 "/api/auth/client/login",
                                 "/api/auth/internal/login",
                                 "/api/auth/register",
+                                "/api/public/**",
                                 "/test-email",
                                 "/", "/login", "/register", "/static/**", "/css/**", "/js/**", "/uploads/**")
                         .permitAll()
 
                         // Protected by role
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/commercial/**").hasRole("COMMERCIAL")
-                        .requestMatchers("/caissier/**").hasRole("CAISSIER")
-                        .requestMatchers("/client/**").hasRole("CLIENT")
+                        .requestMatchers("/api/commercial/**").hasRole("COMMERCIAL")
+                        .requestMatchers("/api/caissier/**").hasRole("CAISSIER")
+                        .requestMatchers("/api/client/**").hasRole("CLIENT")
 
                         // ✅ TOUS les autres chemins (dont /api/auth/reset-initial-password) nécessitent
                         // AUTHENTICATION.

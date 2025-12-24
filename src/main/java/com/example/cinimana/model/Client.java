@@ -2,16 +2,16 @@ package com.example.cinimana.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Client extends BaseEntity {
@@ -41,5 +41,7 @@ public class Client extends BaseEntity {
     private LocalDate dateNaissance;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    @lombok.ToString.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Set<Reservation> reservations = new HashSet<>();
 }

@@ -30,6 +30,13 @@ public class Salle extends BaseEntity {
     @Column(nullable = false)
     private boolean actif = true;
 
+    // Configuration des sièges pour sélection interactive
+    @Column(nullable = false)
+    private Integer nombreRangees = 10; // Nombre de rangées par défaut
+
+    @Column(nullable = false)
+    private Integer siegesParRangee = 15; // Nombre de sièges par rangée par défaut
+
     @OneToMany(mappedBy = "salle", cascade = CascadeType.ALL)
     private Set<Seance> seances = new HashSet<>();
 

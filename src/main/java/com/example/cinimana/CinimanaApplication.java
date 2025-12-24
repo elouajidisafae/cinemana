@@ -4,12 +4,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.cinimana.model.*;
 import com.example.cinimana.repository.*;
 
 @SpringBootApplication
+@EnableScheduling
 public class CinimanaApplication {
 
     public static void main(String[] args) {
@@ -37,10 +39,6 @@ public class CinimanaApplication {
                 adminRepository.save(admin);
                 System.out.println("Admin créé → email: admin@cinimana.com / mdp: admin123");
             }
-
-
-
-
 
         };
     }

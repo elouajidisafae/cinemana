@@ -2,7 +2,6 @@ package com.example.cinimana.security.auth.service;
 
 import com.example.cinimana.model.Client;
 import com.example.cinimana.model.Role;
-import com.example.cinimana.model.Utilisateur; // Import nécessaire
 import com.example.cinimana.repository.AdminRepository;
 import com.example.cinimana.repository.ClientRepository;
 import com.example.cinimana.repository.UtilisateurRepository;
@@ -20,8 +19,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,8 +47,7 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.motDePasse())
-            );
+                    new UsernamePasswordAuthenticationToken(request.email(), request.motDePasse()));
             logger.info("Connexion client réussie pour email: {}", request.email());
         } catch (Exception ex) {
             logger.warn("Tentative de connexion client échouée pour email: {}", request.email());
@@ -60,15 +56,20 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtService.generateToken(userDetails);
 
+        // Clients
+        Client client = clientRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("Client introuvable"));
+
         // Clients (ID: Long dans l'entité, doit être String dans la réponse)
         return new AuthResponse(
                 token,
                 "CLIENT",
-                getNomComplet(request.email()),
-                request.email(), // ✅ Email
-                getUserId(request.email()),
-                false // ✅ Ajout du flag pour le constructeur, false pour les clients
-        );
+                client.getNom() + " " + client.getPrenom(),
+                request.email(),
+                String.valueOf(client.getId()),
+                false,
+                client.getNom(),
+                client.getPrenom());
     }
 
     // Login utilisateurs internes : admin, commercial, caissier
@@ -84,8 +85,7 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.motDePasse())
-            );
+                    new UsernamePasswordAuthenticationToken(request.email(), request.motDePasse()));
             logger.info("Connexion interne réussie pour email: {}", request.email());
         } catch (Exception ex) {
             logger.warn("Tentative de connexion interne échouée pour email: {}", request.email());
@@ -95,16 +95,39 @@ public class AuthServiceImpl implements AuthService {
         String role = userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
         String token = jwtService.generateToken(userDetails);
 
-        boolean isFirstLogin = getPremiereConnexionStatus(request.email());
+        // Récupérer les infos de l'utilisateur (Admin ou Utilisateur Interne)
+        String nom = "";
+        String prenom = "";
+        String userId = "";
+        boolean isFirstLogin = false;
+
+        var adminOpt = adminRepository.findByEmail(request.email());
+        if (adminOpt.isPresent()) {
+            var admin = adminOpt.get();
+            nom = admin.getNom();
+            prenom = admin.getPrenom();
+            userId = String.valueOf(admin.getId());
+            isFirstLogin = false; // Les admins n'ont pas forcément de flag premiereConnexion
+        } else {
+            var utilisateurOpt = utilisateurRepository.findByEmail(request.email());
+            if (utilisateurOpt.isPresent()) {
+                var utilisateur = utilisateurOpt.get();
+                nom = utilisateur.getNom();
+                prenom = utilisateur.getPrenom();
+                userId = utilisateur.getId();
+                isFirstLogin = utilisateur.isPremiereConnexion();
+            }
+        }
 
         return new AuthResponse(
                 token,
                 role,
-                getNomComplet(request.email()),
-                request.email(), // ✅ Email
-                getUserId(request.email()),
-                isFirstLogin // ✅ Ajout du flag pour la redirection frontend
-        );
+                nom + " " + prenom,
+                request.email(),
+                userId,
+                isFirstLogin,
+                nom,
+                prenom);
     }
 
     // Enregistrement client (inchangé)
@@ -121,8 +144,7 @@ public class AuthServiceImpl implements AuthService {
         if (!request.motDePasse().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$")) {
             logger.warn("Mot de passe trop faible pour email: {}", request.email());
             throw new RuntimeException(
-                    "Mot de passe trop faible. Doit contenir min 8 caractères, maj, min, chiffre et spécial."
-            );
+                    "Mot de passe trop faible. Doit contenir min 8 caractères, maj, min, chiffre et spécial.");
         }
 
         Client client = new Client();
@@ -142,53 +164,4 @@ public class AuthServiceImpl implements AuthService {
 
     // --- Méthodes utilitaires ---
 
-    private boolean getPremiereConnexionStatus(String email) {
-        // Retourne le flag de l'utilisateur interne, ou false s'il n'existe pas ou est Admin
-        return utilisateurRepository.findByEmail(email)
-                .map(Utilisateur::isPremiereConnexion)
-                .orElse(false);
-    }
-
-    private String getNomComplet(String email) {
-        return adminRepository.findByEmail(email)
-                .map(a -> a.getNom() + " " + a.getPrenom())
-                .or(() -> utilisateurRepository.findByEmail(email)
-                        .map(u -> u.getNom() + " " + u.getPrenom()))
-                .or(() -> clientRepository.findByEmail(email)
-                        .map(c -> c.getNom() + " " + c.getPrenom()))
-                .orElse("Utilisateur");
-    }
-
-    // ✅ CORRECTION : Le type de retour est maintenant String
-    private String getUserId(String email) {
-
-        // 1. Tenter de trouver l'Admin
-        Optional<String> adminId = adminRepository.findByEmail(email)
-                // L'ID de l'Admin est Long, on le convertit en String
-                .map(a -> String.valueOf(a.getId()));
-
-        if (adminId.isPresent()) {
-            return adminId.get();
-        }
-
-        // 2. Tenter de trouver l'Utilisateur Interne (Commercial/Caissier)
-        // u.getId() est maintenant un String (grâce à la correction de l'entité)
-        Optional<String> utilisateurId = utilisateurRepository.findByEmail(email)
-                .map(Utilisateur::getId); // Map sur le String ID
-
-        if (utilisateurId.isPresent()) {
-            return utilisateurId.get();
-        }
-
-        // 3. Tenter de trouver le Client
-        Optional<String> clientId = clientRepository.findByEmail(email)
-                // L'ID du Client est Long, on le convertit en String
-                .map(c -> String.valueOf(c.getId()));
-
-        if (clientId.isPresent()) {
-            return clientId.get();
-        }
-
-        return null;
-    }
 }

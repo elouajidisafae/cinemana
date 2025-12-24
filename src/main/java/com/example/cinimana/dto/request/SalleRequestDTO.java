@@ -8,5 +8,7 @@ import jakarta.validation.constraints.NotNull;
 public record SalleRequestDTO(
         @NotBlank String nom,
         @NotNull @Min(10) Integer capacite,
-        @NotBlank String type
-) {}
+        @NotBlank String type,
+        @NotNull @Min(1) Integer nombreRangees,
+        @NotNull @Min(1) Integer siegesParRangee) {
+}

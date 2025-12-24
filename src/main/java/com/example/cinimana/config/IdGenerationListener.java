@@ -13,15 +13,18 @@ public class IdGenerationListener {
         try {
             IdGeneratorService idGeneratorService = SpringContext.getBean(IdGeneratorService.class);
 
-            if (entity instanceof Utilisateur user) {
+            if (entity instanceof Utilisateur) {
+                Utilisateur user = (Utilisateur) entity;
                 if (user.getId() == null || user.getId().isBlank()) {
                     user.setId(idGeneratorService.generateUniqueIdForUtilisateur());
                 }
-            } else if (entity instanceof Salle salle) {
+            } else if (entity instanceof Salle) {
+                Salle salle = (Salle) entity;
                 if (salle.getId() == null || salle.getId().isBlank()) {
                     salle.setId(idGeneratorService.generateUniqueIdForSalle());
                 }
-            } else if (entity instanceof Film film) {
+            } else if (entity instanceof Film) {
+                Film film = (Film) entity;
                 if (film.getId() == null || film.getId().isBlank()) {
                     film.setId(idGeneratorService.generateUniqueIdForFilm());
                 }

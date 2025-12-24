@@ -5,5 +5,8 @@ public record SalleResponseDTO(
         String nom,
         int capacite,
         String type,
+        Integer nombreRangees,
+        Integer siegesParRangee,
         boolean actif // Afficher l'état Soft Delete
-) {}
+) {
+}

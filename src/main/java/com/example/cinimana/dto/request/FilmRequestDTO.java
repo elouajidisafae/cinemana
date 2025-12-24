@@ -16,5 +16,6 @@ public record FilmRequestDTO(
         @NotBlank(message = "Le genre est obligatoire.") String genre,
         @NotNull(message = "La date de sortie est obligatoire.") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateSortie,
         String afficheUrl,
-        String trailerUrl) {
+        String trailerUrl,
+        String ageLimite) {
 }

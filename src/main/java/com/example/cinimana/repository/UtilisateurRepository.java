@@ -12,13 +12,11 @@ import org.springframework.data.repository.query.Param;
 @Repository
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, String> {
 
-
-
     Optional<Utilisateur> findByEmail(String email);
 
     boolean existsByEmail(String email);
 
-    long countByRoleAndActifTrue(Role role);
+    long countByRoleAndActifTrue(Role role);// Compte les utilisateurs actifs par rôle
 
     List<Utilisateur> findByActif(boolean actif);
 
@@ -30,7 +28,7 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, String
 
     @Query("SELECT u FROM Utilisateur u WHERE " +
             "(:actif IS NULL OR u.actif = :actif) AND " +
-            "(:role IS NULL OR u.role = :role)")
+            "(:role IS NULL OR u.role = :role)")// Requête dynamique pour filtrer par actif et rôle
     List<Utilisateur> findUsersByFilters(@Param("actif") Boolean actif, @Param("role") Role role);
 
 

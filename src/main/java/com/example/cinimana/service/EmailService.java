@@ -3,10 +3,12 @@ package com.example.cinimana.service;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import java.util.regex.Pattern;
 
 @Service
@@ -17,7 +19,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    // ✅ Email de secours (corrigé : gmail.com au lieu de gmauil.com)
+    // ✅ Email de secours
     private static final String FALLBACK_EMAIL = "safaa.analisse1@gmail.com";
 
     // Domaine interne généré automatiquement
@@ -25,8 +27,7 @@ public class EmailService {
 
     // Pattern pour valider un vrai email
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-    );
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     /**
      * Envoie un email avec les identifiants initiaux
@@ -48,74 +49,76 @@ public class EmailService {
         }
 
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(destinationEmail);
-            message.setSubject("🎬 Bienvenue sur CiniMana - Vos Identifiants de Connexion");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            // Corps du message
-            String text = buildEmailBody(toEmail, loginId, initialPassword, isRealEmail);
-            message.setText(text);
+            helper.setTo(destinationEmail);
+            helper.setSubject("🎬 Bienvenue sur Cinémana - Vos Identifiants");
 
-            // Envoi
+            String htmlContent = buildWelcomeHtml(toEmail, loginId, initialPassword, isRealEmail);
+            helper.setText(htmlContent, true);
+
             mailSender.send(message);
-
-            logger.info("✅ Email envoyé avec succès à: {}", destinationEmail);
+            logger.info("✅ Email HTML de bienvenue envoyé à: {}", destinationEmail);
 
         } catch (Exception e) {
-            logger.error("❌ Erreur lors de l'envoi de l'email à {}: {}",
-                    destinationEmail, e.getMessage(), e);
+            logger.error("❌ Erreur envoi email bienvenue: {}", e.getMessage());
             throw new RuntimeException("Échec de l'envoi de l'email: " + e.getMessage());
         }
     }
 
-    /**
-     * Construit le corps de l'email selon le type d'adresse
-     */
-    private String buildEmailBody(String originalEmail, String loginId,
-                                  String password, boolean isRealEmail) {
+    private String buildWelcomeHtml(String originalEmail, String loginId, String password, boolean isRealEmail) {
+        String loginLabel = isRealEmail ? "EMAIL" : "ID CONNEXION";
+        String loginValue = isRealEmail ? originalEmail : loginId;
 
-        StringBuilder body = new StringBuilder();
+        String warningNote = !isRealEmail
+                ? "<div style='border-top:1px solid #e5e7eb; margin-top:20px; padding-top:10px; font-size:11px; color:#6b7280;'>"
+                +
+                "Note: Cet email a été envoyé à l'adresse de secours car l'adresse (" + originalEmail
+                + ") est invalide." +
+                "</div>"
+                : "";
 
-        body.append("Bonjour,\n\n");
-        body.append("Votre compte CiniMana a été créé avec succès par l'administrateur.\n\n");
-        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-        body.append("📋 VOS IDENTIFIANTS DE CONNEXION\n");
-        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
-
-        if (isRealEmail) {
-            body.append("🔑 Email (Login) : ").append(originalEmail).append("\n");
-        } else {
-            body.append("🔑 ID Utilisateur (Login) : ").append(loginId).append("\n");
-        }
-
-        body.append("🔒 Mot de passe initial : ").append(password).append("\n\n");
-        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
-
-        body.append("⚠️ IMPORTANT - SÉCURITÉ\n");
-        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-        body.append("• Vous DEVEZ changer ce mot de passe lors de votre première connexion\n");
-        body.append("• Ne partagez JAMAIS vos identifiants\n");
-        body.append("• Conservez ce mot de passe en lieu sûr\n\n");
-
-        // Message spécifique pour email invalide/interne
-        if (!isRealEmail) {
-            body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-            body.append("📧 NOTE ADMINISTRATIVE\n");
-            body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-            body.append("L'email de l'utilisateur (").append(originalEmail).append(") ");
-            body.append("n'est pas une adresse valide.\n");
-            body.append("Ce message a été envoyé à l'adresse de secours: ");
-            body.append(FALLBACK_EMAIL).append("\n");
-            body.append("Veuillez transmettre ces identifiants à l'utilisateur concerné.\n\n");
-        }
-
-        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-        body.append("🎬 Bienvenue dans l'équipe CiniMana !\n");
-        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
-        body.append("Cordialement,\n");
-        body.append("L'équipe CiniMana\n");
-
-        return body.toString();
+        return "<!DOCTYPE html><html><head><style>" +
+                "  body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }"
+                +
+                "  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }"
+                +
+                "  .header { background-color: #18181b; color: #ffffff; padding: 40px 20px; text-align: center; border-bottom: 4px solid #dc2626; }"
+                +
+                "  .content { padding: 40px; line-height: 1.6; color: #374151; }" +
+                "  .card { background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 25px; border-radius: 8px; margin: 25px 0; }"
+                +
+                "  .footer { background-color: #f9fafb; color: #9ca3af; padding: 20px; text-align: center; font-size: 12px; }"
+                +
+                "  .btn { display: inline-block; background-color: #dc2626; color: #ffffff !important; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; }"
+                +
+                "  h1 { margin: 0; letter-spacing: 4px; }" +
+                "  .label { font-size: 11px; font-weight: bold; color: #9ca3af; letter-spacing: 1px; }" +
+                "  .value { font-size: 18px; font-weight: bold; color: #111827; margin-bottom: 15px; }" +
+                "</style></head><body>" +
+                "  <div class='container'>" +
+                "    <div class='header'><h1>CINÉMANA</h1></div>" +
+                "    <div class='content'>" +
+                "      <h2 style='color:#111827; margin-top:0;'>Bienvenue dans l'équipe !</h2>" +
+                "      <p>Votre compte a été créé avec succès. Voici vos identifiants pour accéder à la plateforme :</p>"
+                +
+                "      <div class='card'>" +
+                "        <div class='label'>" + loginLabel + "</div>" +
+                "        <div class='value'>" + loginValue + "</div>" +
+                "        <div class='label'>MOT DE PASSE TEMPORAIRE</div>" +
+                "        <div class='value'>" + password + "</div>" +
+                "      </div>" +
+                "      <div style='text-align:center; margin: 30px 0;'>" +
+                "        <a href='#' class='btn'>SE CONNECTER AU DASHBOARD</a>" +
+                "      </div>" +
+                "      <p style='font-size:13px; color:#6b7280;'>⚠️ Pour votre sécurité, vous devrez changer ce mot de passe lors de votre première connexion.</p>"
+                +
+                "      " + warningNote + "" +
+                "    </div>" +
+                "    <div class='footer'><p>&copy; 2025 Cinémana Platform</p></div>" +
+                "  </div>" +
+                "</body></html>";
     }
 
     /**
@@ -136,30 +139,54 @@ public class EmailService {
         String destinationEmail = isValidEmail(toEmail) ? toEmail : FALLBACK_EMAIL;
 
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(destinationEmail);
-            message.setSubject("🔐 CiniMana - Réinitialisation de mot de passe");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            String text = String.format(
-                    "Bonjour %s,\n\n" +
-                            "Une demande de réinitialisation de mot de passe a été effectuée.\n\n" +
-                            "Code de réinitialisation : %s\n\n" +
-                            "Ce code expire dans 15 minutes.\n\n" +
-                            "Si vous n'avez pas demandé cette réinitialisation, ignorez ce message.\n\n" +
-                            "Cordialement,\n" +
-                            "L'équipe CiniMana",
-                    userName, resetToken
-            );
+            helper.setTo(destinationEmail);
+            helper.setSubject("🔐 Récupération de compte Cinémana");
 
-            message.setText(text);
+            String htmlContent = buildResetPasswordHtml(userName, resetToken);
+            helper.setText(htmlContent, true);
+
             mailSender.send(message);
-
-            logger.info("✅ Email de réinitialisation envoyé à: {}", destinationEmail);
+            logger.info("✅ Email HTML de reset envoyé à: {}", destinationEmail);
 
         } catch (Exception e) {
-            logger.error("❌ Erreur envoi email réinitialisation: {}", e.getMessage());
+            logger.error("❌ Erreur envoi email reset: {}", e.getMessage());
             throw new RuntimeException("Échec de l'envoi de l'email");
         }
+    }
+
+    private String buildResetPasswordHtml(String userName, String resetToken) {
+        return "<!DOCTYPE html><html><head><style>" +
+                "  body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }"
+                +
+                "  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }"
+                +
+                "  .header { background-color: #dc2626; color: #ffffff; padding: 30px; text-align: center; }" +
+                "  .content { padding: 40px; line-height: 1.6; color: #374151; }" +
+                "  .token-box { background-color: #fef2f2; border: 2px dashed #f87171; padding: 20px; text-align: center; border-radius: 8px; margin: 25px 0; }"
+                +
+                "  .token { font-size: 32px; font-weight: bold; color: #dc2626; letter-spacing: 5px; }" +
+                "  .footer { background-color: #f9fafb; color: #9ca3af; padding: 20px; text-align: center; font-size: 12px; }"
+                +
+                "</style></head><body>" +
+                "  <div class='container'>" +
+                "    <div class='header'><h1 style='margin:0; letter-spacing:3px;'>CINÉMANA</h1></div>" +
+                "    <div class='content'>" +
+                "      <h2 style='color:#111827; margin-top:0;'>Réinitialisation du mot de passe</h2>" +
+                "      <p>Bonjour " + userName + ",</p>" +
+                "      <p>Vous avez demandé la réinitialisation de votre mot de passe. Utilisez le code ci-dessous pour continuer :</p>"
+                +
+                "      <div class='token-box'>" +
+                "        <div class='token'>" + resetToken + "</div>" +
+                "      </div>" +
+                "      <p>Ce code est valable pendant <strong>15 minutes</strong>. Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.</p>"
+                +
+                "    </div>" +
+                "    <div class='footer'><p>&copy; 2025 Cinémana</p></div>" +
+                "  </div>" +
+                "</body></html>";
     }
 
     /**
@@ -170,64 +197,254 @@ public class EmailService {
         String destinationEmail = isValidEmail(toEmail) ? toEmail : FALLBACK_EMAIL;
 
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(destinationEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            if (isActive) {
-                message.setSubject("✅ CiniMana - Compte Réactivé");
-                message.setText(String.format(
-                        "Bonjour %s,\n\n" +
-                                "Votre compte CiniMana a été réactivé.\n\n" +
-                                "Vous pouvez maintenant vous reconnecter.\n\n" +
-                                "Cordialement,\n" +
-                                "L'équipe CiniMana",
-                        userName
-                ));
-            } else {
-                message.setSubject("⚠️ CiniMana - Compte Désactivé");
-                message.setText(String.format(
-                        "Bonjour %s,\n\n" +
-                                "Votre compte CiniMana a été désactivé.\n\n" +
-                                "Pour plus d'informations, contactez l'administrateur.\n\n" +
-                                "Cordialement,\n" +
-                                "L'équipe CiniMana",
-                        userName
-                ));
-            }
+            helper.setTo(destinationEmail);
+            String subject = isActive ? "✅ Votre compte Cinémana est actif"
+                    : "⚠️ Information sur votre compte Cinémana";
+            helper.setSubject(subject);
+
+            String htmlContent = buildAccountStatusHtml(userName, isActive);
+            helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            logger.info("✅ Email de statut de compte envoyé à: {}", destinationEmail);
+            logger.info("✅ Email HTML de statut envoyé à: {}", destinationEmail);
 
         } catch (Exception e) {
             logger.error("❌ Erreur envoi email statut: {}", e.getMessage());
-            // Ne pas faire échouer l'opération pour un problème d'email
         }
     }
+
+    private String buildAccountStatusHtml(String userName, boolean isActive) {
+        String statusTitle = isActive ? "Compte Réactivé" : "Compte Désactivé";
+        String statusColor = isActive ? "#10b981" : "#f59e0b";
+        String statusIcon = isActive ? "✅" : "⚠️";
+        String statusMessage = isActive
+                ? "Bonne nouvelle ! Votre accès à la plateforme Cinémana a été rétabli. Vous pouvez vous connecter dès maintenant."
+                : "Votre compte a été temporairement désactivé par l'administrateur. Veuillez nous contacter pour plus d'informations.";
+
+        return "<!DOCTYPE html><html><head><style>" +
+                "  body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }"
+                +
+                "  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }"
+                +
+                "  .header { background-color: #18181b; color: #ffffff; padding: 30px; text-align: center; border-bottom: 4px solid "
+                + statusColor + "; }" +
+                "  .content { padding: 40px; line-height: 1.6; color: #374151; }" +
+                "  .status-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; background-color: #f3f4f6; color: "
+                + statusColor + "; font-weight: bold; margin-bottom: 20px; }" +
+                "  .footer { background-color: #f9fafb; color: #9ca3af; padding: 20px; text-align: center; font-size: 12px; }"
+                +
+                "</style></head><body>" +
+                "  <div class='container'>" +
+                "    <div class='header'><h1 style='margin:0; letter-spacing:3px;'>CINÉMANA</h1></div>" +
+                "    <div class='content'>" +
+                "      <div class='status-badge'>" + statusIcon + " " + statusTitle.toUpperCase() + "</div>" +
+                "      <h2 style='color:#111827; margin-top:0;'>Bonjour " + userName + ",</h2>" +
+                "      <p>" + statusMessage + "</p>" +
+                "      <p>Cordialement,<br>L'équipe Cinémana</p>" +
+                "    </div>" +
+                "    <div class='footer'><p>&copy; 2025 Cinémana</p></div>" +
+                "  </div>" +
+                "</body></html>";
+    }
+
+    /**
+     * Envoie un email de confirmation de présence (3h avant la séance) en format
+     * HTML
+     */
+    public void sendReservationConfirmationEmail(
+            String toEmail,
+            String clientName,
+            String filmTitle,
+            String seanceDateTime,
+            String salleName,
+            int nombrePlaces,
+            String codeReservation,
+            String confirmationLink) {
+
+        String destinationEmail = isValidEmail(toEmail) ? toEmail : FALLBACK_EMAIL;
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(destinationEmail);
+            helper.setSubject("⏰ CINÉMANA : Votre séance commence bientôt !");
+
+            String htmlContent = buildPresenceConfirmationHtml(clientName, filmTitle, seanceDateTime, salleName,
+                    nombrePlaces, codeReservation, confirmationLink);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            logger.info("✅ Email HTML de rappel (3h) envoyé à: {} pour code: {}", destinationEmail, codeReservation);
+
+        } catch (Exception e) {
+            logger.error("❌ Erreur envoi email rappel (HTML): {}", e.getMessage());
+        }
+    }
+
+    private String buildPresenceConfirmationHtml(String clientName, String filmTitle, String seanceDateTime,
+                                                 String salleName, int nombrePlaces, String codeReservation, String confirmationLink) {
+        return "<!DOCTYPE html>" +
+                "<html>" +
+                "<head><style>" +
+                "  body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }"
+                +
+                "  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }"
+                +
+                "  .header { background-color: #18181b; color: #ffffff; padding: 30px; text-align: center; border-bottom: 4px solid #dc2626; }"
+                +
+                "  .content { padding: 30px; line-height: 1.6; }" +
+                "  .info-box { background-color: #fff1f2; border: 1px solid #fecaca; padding: 20px; border-radius: 6px; margin: 20px 0; }"
+                +
+                "  .footer { background-color: #f9fafb; color: #6b7280; padding: 20px; text-align: center; font-size: 12px; }"
+                +
+                "  .btn { display: inline-block; background-color: #dc2626; color: #ffffff !important; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 25px; }"
+                +
+                "  .warning { color: #991b1b; font-weight: bold; border-top: 1px solid #fecaca; padding-top: 15px; margin-top: 15px; }"
+                +
+                "</style></head>" +
+                "<body>" +
+                "  <div class='container'>" +
+                "    <div class='header'><h1>CINÉMANA</h1></div>" +
+                "    <div class='content'>" +
+                "      <h2>Bonjour " + clientName + ",</h2>" +
+                "      <p>Votre séance pour <strong>" + filmTitle.toUpperCase()
+                + "</strong> commence dans exactement <strong>3 heures</strong> !</p>" +
+                "      <div class='info-box'>" +
+                "        <p style='margin: 0;'><strong>🎬 Détails</strong></p>" +
+                "        <p style='margin: 5px 0;'>Séance : " + seanceDateTime + "</p>" +
+                "        <p style='margin: 5px 0;'>Salle : " + salleName + "</p>" +
+                "        <p style='margin: 5px 0;'>Places : " + nombrePlaces + "</p>" +
+                "        <p class='warning'>⚠️ ACTION REQUISE : Veuillez confirmer votre présence en cliquant sur le bouton ci-dessous dans l'HEURE qui suit pour conserver votre réservation.</p>"
+                +
+                "      </div>" +
+                "      <div style='text-align: center;'>" +
+                "        <a href='" + confirmationLink + "' class='btn'>CONFIRMER MA PRÉSENCE</a>" +
+                "      </div>" +
+                "      <p style='text-align: center; font-size: 11px; color: #991b1b; margin-top: 10px;'>Si vous ne confirmez pas, votre réservation sera automatiquement annulée.</p>"
+                +
+                "    </div>" +
+                "    <div class='footer'>" +
+                "      <p>&copy; 2025 Cinémana. À tout de suite au cinéma !</p>" +
+                "    </div>" +
+                "  </div>" +
+                "</body>" +
+                "</html>";
+    }
+
+    /**
+     * Envoie un email de confirmation de réservation réussie avec le billet PDF en
+     * pièce jointe
+     */
+    public void sendReservationSuccessEmailWithAttachment(
+            String toEmail,
+            String clientName,
+            String filmTitle,
+            String seanceDateTime,
+            String codeReservation,
+            byte[] pdfAttachment) {
+
+        String destinationEmail = isValidEmail(toEmail) ? toEmail : FALLBACK_EMAIL;
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(destinationEmail);
+            helper.setSubject("🎬 Votre Billet Cinémana : " + filmTitle);
+
+            String htmlContent = buildReservationHtml(clientName, filmTitle, seanceDateTime, codeReservation);
+            helper.setText(htmlContent, true);
+
+            // Ajout du PDF en pièce jointe
+            if (pdfAttachment != null) {
+                helper.addAttachment("Billet_" + codeReservation + ".pdf", new ByteArrayResource(pdfAttachment));
+            }
+
+            mailSender.send(message);
+            logger.info("✅ Email HTML avec pièce jointe envoyé à: {}", destinationEmail);
+
+        } catch (Exception e) {
+            logger.error("❌ Erreur envoi email succès réservation (HTML): {}", e.getMessage());
+            // Fallback sur l'email simple si l'HTML échoue (optionnel, mais ici on log
+            // juste)
+        }
+    }
+
+    private String buildReservationHtml(String clientName, String filmTitle, String seanceDateTime,
+                                        String codeReservation) {
+        return "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<style>" +
+                "  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }"
+                +
+                "  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }"
+                +
+                "  .header { background-color: #dc2626; color: #ffffff; padding: 30px; text-align: center; }" +
+                "  .content { padding: 30px; line-height: 1.6; }" +
+                "  .movie-card { background-color: #f9f9f9; border-left: 4px solid #dc2626; padding: 20px; margin: 20px 0; border-radius: 4px; }"
+                +
+                "  .footer { background-color: #18181b; color: #a1a1aa; padding: 20px; text-align: center; font-size: 12px; }"
+                +
+                "  .btn { display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 20px; }"
+                +
+                "  h1 { margin: 0; font-size: 28px; letter-spacing: 2px; }" +
+                "  .code { font-size: 20px; font-weight: bold; color: #dc2626; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "  <div class='container'>" +
+                "    <div class='header'>" +
+                "      <h1>CINÉMANA</h1>" +
+                "      <p style='margin-top: 10px; opacity: 0.9;'>L'EXPÉRIENCE ULTIME DU CINÉMA</p>" +
+                "    </div>" +
+                "    <div class='content'>" +
+                "      <h2 style='color: #18181b;'>Félicitations " + clientName + " !</h2>" +
+                "      <p>Votre réservation a été confirmée avec succès. Préparez le pop-corn, une séance inoubliable vous attend !</p>"
+                +
+                "      <div class='movie-card'>" +
+                "        <p style='margin: 0; font-size: 12px; color: #666; font-weight: bold;'>FILM</p>" +
+                "        <p style='margin: 5px 0 15px 0; font-size: 22px; font-weight: bold; color: #18181b;'>"
+                + filmTitle.toUpperCase() + "</p>" +
+                "        <p style='margin: 0; font-size: 12px; color: #666; font-weight: bold;'>SÉANCE</p>" +
+                "        <p style='margin: 5px 0 0 0; font-size: 16px; color: #333;'>" + seanceDateTime + "</p>" +
+                "      </div>" +
+                "      <p>Votre code de réservation est : <span class='code'>" + codeReservation + "</span></p>" +
+                "      <p><b>📧 Note :</b> Votre billet PDF est joint à cet email. Vous pouvez également le retrouver à tout moment dans votre espace client.</p>"
+                +
+                "      <p>À très bientôt dans nos salles !</p>" +
+                "      <div style='text-align: center;'>" +
+                "        <a href='#' class='btn'>Accéder à mon compte</a>" +
+                "      </div>" +
+                "    </div>" +
+                "    <div class='footer'>" +
+                "      <p>&copy; 2025 Cinémana. Tous droits réservés.</p>" +
+                "      <p>Ceci est un email automatique, merci de ne pas y répondre.</p>" +
+                "    </div>" +
+                "  </div>" +
+                "</body>" +
+                "</html>";
+    }
+
+    /**
+     * Envoie un email de confirmation de réservation réussie (après création)
+     *
+     * @deprecated Utiliser sendReservationSuccessEmailWithAttachment pour l'envoi
+     *             du PDF
+     */
+    @Deprecated
+    public void sendReservationSuccessEmail(
+            String toEmail,
+            String clientName,
+            String filmTitle,
+            String seanceDateTime,
+            String codeReservation) {
+        // ... (keep existing implementation or call the new one with null attachment)
+        sendReservationSuccessEmailWithAttachment(toEmail, clientName, filmTitle, seanceDateTime, codeReservation,
+                null);
+    }
 }
-
-
-//
-//import org.springframework.mail.SimpleMailMessage;
-//import org.springframework.mail.javamail.JavaMailSender;
-//import org.springframework.stereotype.Service;
-//
-//@Service
-//public class EmailService {
-//
-//    private final JavaMailSender mailSender;
-//
-//    public EmailService(JavaMailSender mailSender) {
-//        this.mailSender = mailSender;
-//    }
-//
-//    public void sendInitialPasswordEmail(String to, String password, String login) {
-//        SimpleMailMessage message = new SimpleMailMessage();
-//        message.setTo(to);
-//        message.setSubject("Votre mot de passe initial");
-//        message.setText("Bonjour,\n\nVotre login est : " + login +
-//                "\nVotre mot de passe initial est : " + password +
-//                "\n\nMerci.");
-//
-//        mailSender.send(message);
-//    }
-//}

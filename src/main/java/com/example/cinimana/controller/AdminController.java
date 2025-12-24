@@ -21,10 +21,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.springframework.format.annotation.DateTimeFormat;
+import java.time.format.DateTimeFormatter;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import com.example.cinimana.service.admin.AdminExportService;
+import com.example.cinimana.dto.response.HistoriqueResponseDTO;
+import com.example.cinimana.model.Client;
 import com.example.cinimana.model.TypeOperation;
 import com.example.cinimana.model.StatutReservation;
 import java.time.LocalDateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -35,6 +41,7 @@ public class AdminController {
     private final DashboardService dashboardService;
     private final AdminFilmService adminFilmService;
     private final AdminSalleService adminSalleService;
+    private final AdminExportService adminExportService;
 
     // --- 1. CONSULTATION DES UTILISATEURS (Actifs, Inactifs, Tous) ---
     @GetMapping("/users")
@@ -138,9 +145,10 @@ public class AdminController {
     public ResponseEntity<List<com.example.cinimana.dto.response.HistoriqueResponseDTO>> getFilteredUserHistory(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) List<com.example.cinimana.model.Role> roles,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        return ResponseEntity.ok(dashboardService.getFilteredUserHistory(search, operations, start, end));
+        return ResponseEntity.ok(dashboardService.getFilteredUserHistory(search, operations, roles, start, end));
     }
 
     @GetMapping("/historique/users/stats")
@@ -160,6 +168,20 @@ public class AdminController {
     @GetMapping("/historique/films/stats")
     public ResponseEntity<java.util.Map<String, Long>> getGlobalFilmHistoryStats() {
         return ResponseEntity.ok(dashboardService.getGlobalFilmHistoryStats());
+    }
+
+    @GetMapping("/historique/offres")
+    public ResponseEntity<List<com.example.cinimana.dto.response.HistoriqueResponseDTO>> getFilteredOfferHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        return ResponseEntity.ok(dashboardService.getFilteredOfferHistory(search, operations, start, end));
+    }
+
+    @GetMapping("/historique/offres/stats")
+    public ResponseEntity<java.util.Map<String, Long>> getGlobalOfferHistoryStats() {
+        return ResponseEntity.ok(dashboardService.getGlobalOfferHistoryStats());
     }
 
     @GetMapping("/historique/salles")
@@ -210,5 +232,90 @@ public class AdminController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         return ResponseEntity.ok(dashboardService.getFilteredClients(search, start, end));
+    }
+
+    // --- ENDPOINTS EXPORT EXCEL ---
+
+    private ResponseEntity<byte[]> generateExcelResponse(byte[] content, String entityName) {
+        String filename = entityName + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"))
+                + ".xlsx";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(content);
+    }
+
+    @GetMapping("/historique/users/export/excel")
+    public ResponseEntity<byte[]> exportUserHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) List<com.example.cinimana.model.Role> roles,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<HistoriqueResponseDTO> data = dashboardService.getFilteredUserHistory(search, operations, roles, start,
+                end);
+        return generateExcelResponse(adminExportService.exportHistoriqueToExcel(data), "HistoriqueUtilisateurs");
+    }
+
+    @GetMapping("/historique/films/export/excel")
+    public ResponseEntity<byte[]> exportFilmHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<HistoriqueResponseDTO> data = dashboardService.getFilteredFilmHistory(search, operations, start, end);
+        return generateExcelResponse(adminExportService.exportHistoriqueToExcel(data), "HistoriqueFilms");
+    }
+
+    @GetMapping("/historique/offres/export/excel")
+    public ResponseEntity<byte[]> exportOfferHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<HistoriqueResponseDTO> data = dashboardService.getFilteredOfferHistory(search, operations, start, end);
+        return generateExcelResponse(adminExportService.exportHistoriqueToExcel(data), "HistoriqueOffres");
+    }
+
+    @GetMapping("/historique/salles/export/excel")
+    public ResponseEntity<byte[]> exportSalleHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<HistoriqueResponseDTO> data = dashboardService.getFilteredSalleHistory(search, operations, start, end);
+        return generateExcelResponse(adminExportService.exportHistoriqueToExcel(data), "HistoriqueSalles");
+    }
+
+    @GetMapping("/historique/seances/export/excel")
+    public ResponseEntity<byte[]> exportSeanceHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<TypeOperation> operations,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<HistoriqueResponseDTO> data = dashboardService.getFilteredSeanceHistory(search, operations, start, end);
+        return generateExcelResponse(adminExportService.exportHistoriqueToExcel(data), "HistoriqueSeances");
+    }
+
+    @GetMapping("/historique/reservations/export/excel")
+    public ResponseEntity<byte[]> exportReservationHistory(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<StatutReservation> statuses,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<HistoriqueResponseDTO> data = dashboardService.getFilteredReservations(search, statuses, start, end);
+        return generateExcelResponse(adminExportService.exportReservationHistoriqueToExcel(data),
+                "HistoriqueReservations");
+    }
+
+    @GetMapping("/clients/export/excel")
+    public ResponseEntity<byte[]> exportClients(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<Client> data = dashboardService.getFilteredClients(search, start, end);
+        return generateExcelResponse(adminExportService.exportClientsToExcel(data), "ListeClients");
     }
 }

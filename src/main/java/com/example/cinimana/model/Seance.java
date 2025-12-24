@@ -24,10 +24,8 @@ public class Seance extends BaseEntity {
     private LocalDateTime dateHeure;
 
     @Column(nullable = false)
-    private double prixTicket;
+    private boolean actif = true;
 
-    @Column(nullable = false)
-    private int placesReservees = 0;
 
     @ManyToOne
     @JoinColumn(name = "film_id", nullable = false)
@@ -42,13 +40,41 @@ public class Seance extends BaseEntity {
     private Categorie categorie;
 
     @OneToMany(mappedBy = "seance", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Set<Reservation> reservations = new HashSet<>();
 
     @OneToMany(mappedBy = "seance", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Set<HistoriqueSeance> historiques = new HashSet<>();
 
+    /**
+     * Récupère le prix du ticket depuis la catégorie associée
+     */
+    @Transient // Non persisté en base
+    public double getPrixTicket() {
+        try {
+            return categorie != null ? categorie.getPrixBase() : 10.0;
+        } catch (Exception e) {
+            // Fallback in case of lazy loading exception
+            return 10.0;
+        }
+    }
+
+    /**
+     * Calcule les places disponibles en comptant les sièges réservés
+     */
     @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public int getPlacesDisponibles() {
-        return salle != null ? salle.getCapacite() - placesReservees : 0;
+        if (salle == null)
+            return 0;
+
+        if (reservations == null)
+            return salle.getCapacite(); // Safety
+
+        return salle.getCapacite() - (int) reservations.stream()
+                .filter(r -> r.getStatut() != StatutReservation.ANNULEE)
+                .mapToLong(r -> r.getSieges() != null ? r.getSieges().size() : 0)
+                .sum();
     }
 }

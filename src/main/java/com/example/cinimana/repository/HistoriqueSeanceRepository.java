@@ -25,7 +25,7 @@ public interface HistoriqueSeanceRepository extends JpaRepository<HistoriqueSean
     List<HistoriqueSeance> findBySeanceIdOrderByDateOperationDesc(@Param("seanceId") Long seanceId);
 
     @Query("SELECT h FROM HistoriqueSeance h WHERE h.commercial.id = :commercialId ORDER BY h.dateOperation DESC")
-    List<HistoriqueSeance> findByCommercialIdOrderByDateOperationDesc(@Param("commercialId") Long commercialId);
+    List<HistoriqueSeance> findByCommercialIdOrderByDateOperationDesc(@Param("commercialId") String commercialId);
 
     @Query("SELECT h FROM HistoriqueSeance h WHERE h.dateOperation BETWEEN :debut AND :fin ORDER BY h.dateOperation DESC")
     List<HistoriqueSeance> findHistoriqueBetweenDates(@Param("debut") LocalDateTime debut,
@@ -34,7 +34,7 @@ public interface HistoriqueSeanceRepository extends JpaRepository<HistoriqueSean
     List<HistoriqueSeance> findTop5ByOrderByDateOperationDesc();
 
     @Query("SELECT h FROM HistoriqueSeance h WHERE " +
-            "(:search IS NULL OR LOWER(h.commercial.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.commercial.prenom) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
+            "(:search IS NULL OR LOWER(h.commercial.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.commercial.prenom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.seance.film.titre) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
             +
             "((:operations) IS NULL OR h.operation IN (:operations)) AND " +
             "(cast(:debut as timestamp) IS NULL OR h.dateOperation >= :debut) AND " +

@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface FilmRepository extends JpaRepository<Film, String> { // <-- String ID
+public interface FilmRepository extends JpaRepository<Film, String> {
 
     List<Film> findByGenreAndActifTrue(String genre);
 

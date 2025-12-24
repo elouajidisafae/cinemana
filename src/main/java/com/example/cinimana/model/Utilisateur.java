@@ -17,9 +17,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.JOINED) // Use JOINED strategy for inheritance
 @DiscriminatorColumn(name = "role_type", discriminatorType = DiscriminatorType.STRING)
-@EntityListeners(IdGenerationListener.class)
 public class Utilisateur extends BaseEntity {
 
     @Id

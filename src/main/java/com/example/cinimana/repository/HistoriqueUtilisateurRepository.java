@@ -35,14 +35,16 @@ public interface HistoriqueUtilisateurRepository extends JpaRepository<Historiqu
     List<HistoriqueUtilisateur> findTop5ByOrderByDateOperationDesc();
 
     @Query("SELECT h FROM HistoriqueUtilisateur h WHERE " +
-            "(:search IS NULL OR LOWER(h.admin.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.admin.prenom) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
+            "(:search IS NULL OR LOWER(h.admin.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.admin.prenom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.utilisateur.nom) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(h.utilisateur.prenom) LIKE LOWER(CONCAT('%', :search, '%'))) AND "
             +
             "((:operations) IS NULL OR h.operation IN (:operations)) AND " +
+            "((:roles) IS NULL OR h.utilisateur.role IN (:roles)) AND " +
             "(cast(:debut as timestamp) IS NULL OR h.dateOperation >= :debut) AND " +
             "(cast(:fin as timestamp) IS NULL OR h.dateOperation <= :fin) " +
             "ORDER BY h.dateOperation DESC")
     List<HistoriqueUtilisateur> findFiltered(@Param("search") String search,
                                              @Param("operations") List<TypeOperation> operations,
+                                             @Param("roles") List<Role> roles,
                                              @Param("debut") LocalDateTime debut,
                                              @Param("fin") LocalDateTime fin);
 }

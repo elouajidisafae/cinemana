@@ -15,5 +15,6 @@ import java.util.Set;
 public class Caissier extends Utilisateur {
 
     @OneToMany(mappedBy = "caissier")
+    @com.fasterxml.jackson.annotation.JsonIgnore // To prevent circular references during serialization
     private Set<Reservation> reservationsValidees = new HashSet<>();
 }

@@ -40,6 +40,8 @@ public class Film extends BaseEntity {
     @Column(nullable = false)
     private boolean actif = true;
 
+    private String ageLimite;
+
     @OneToMany(mappedBy = "film", cascade = CascadeType.ALL)
     private Set<Seance> seances = new HashSet<>();
 

@@ -5,6 +5,7 @@ import com.example.cinimana.dto.response.FilmResponseDTO;
 import com.example.cinimana.model.*;
 import com.example.cinimana.repository.FilmRepository;
 import com.example.cinimana.repository.HistoriqueFilmRepository;
+import com.example.cinimana.repository.SeanceRepository;
 import com.example.cinimana.service.IdGeneratorService;
 import com.example.cinimana.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class AdminFilmService {
 
     private final FilmRepository filmRepository;
     private final HistoriqueFilmRepository historiqueFilmRepository;
+    private final SeanceRepository seanceRepository;
     private final UserService userService;
     private final IdGeneratorService idGeneratorService;
 
@@ -33,6 +35,7 @@ public class AdminFilmService {
                 film.getDateSortie(),
                 film.getAfficheUrl(),
                 film.getTrailerUrl(),
+                film.getAgeLimite(),
                 film.isActif());
     }
 
@@ -51,6 +54,7 @@ public class AdminFilmService {
         film.setDateSortie(dto.dateSortie());
         film.setAfficheUrl(dto.afficheUrl());
         film.setTrailerUrl(dto.trailerUrl());
+        film.setAgeLimite(dto.ageLimite() != null ? dto.ageLimite() : "0");
         film.setActif(true);
 
         filmRepository.save(film);
@@ -75,6 +79,7 @@ public class AdminFilmService {
         film.setDateSortie(dto.dateSortie());
         film.setAfficheUrl(dto.afficheUrl());
         film.setTrailerUrl(dto.trailerUrl());
+        film.setAgeLimite(dto.ageLimite() != null ? dto.ageLimite() : film.getAgeLimite());
 
         filmRepository.save(film);
 
@@ -91,13 +96,20 @@ public class AdminFilmService {
     public void toggleActivation(String id, boolean actif) {
         Film film = filmRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Film non trouvé"));
+
+        if (!actif) {
+            if (seanceRepository.existsByFilmAndActifTrue(film)) {
+                throw new IllegalStateException("Impossible de désactiver ce film car il est lié à une séance active.");
+            }
+        }
+
         film.setActif(actif);
         filmRepository.save(film);
 
         HistoriqueFilm h = new HistoriqueFilm();
         h.setFilm(film);
         h.setAdmin(userService.getCurrentAdmin());
-        h.setOperation(TypeOperation.ACTIVATION);
+        h.setOperation(actif ? TypeOperation.ACTIVATION : TypeOperation.SUPPRESSION);
         historiqueFilmRepository.save(h);
     }
 

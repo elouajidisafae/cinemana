@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -18,8 +21,11 @@ public class Reservation extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    private String codeReservation; // UUID pour QR code et identification
+
     @Column(nullable = false)
-    private int nombrePlace;
+    private Integer nombrePlace;
 
     @Column(nullable = false)
     private LocalDateTime dateReservation;
@@ -28,11 +34,15 @@ public class Reservation extends BaseEntity {
     @Column(nullable = false)
     private StatutReservation statut;
 
-    private String ticketPdfUrl;
+    private String ticketPdfUrl; // URL d'accès au ticket PDF (ex: "/api/tickets/{codeReservation}")
 
     @Column(nullable = false)
-    private double montantTotal;
+    private Double montantTotal;
 
+    @Column(name = "ticket_pdf_path")
+    private String ticketPdfPath; // Chemin du fichier PDF stocké sur disque (ex: "tickets/ticket-123.pdf")
+
+    // Relations
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
@@ -45,7 +55,23 @@ public class Reservation extends BaseEntity {
     @JoinColumn(name = "caissier_id")
     private Caissier caissier;
 
-    private LocalDateTime dateValidation;
+    @ManyToOne
+    @JoinColumn(name = "offre_id")
+    private Offre offre; // Offre appliquée (optionnelle)
+
+    // Nouvelles relations
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SiegeReserve> sieges = new ArrayList<>();
+
+    // Snacks supprimés
+
+    // Timestamps pour le système de confirmation
+    private LocalDateTime dateConfirmationEmail; // Quand l'email de confirmation a été envoyé (3h avant)
+    private LocalDateTime dateConfirmationClient; // Quand le client a confirmé sa présence
+    private LocalDateTime dateValidation; // Quand la réservation a été validée à la caisse
+
+    // Preuve étudiant (si offre étudiant appliquée)
+    // NOTE: Le client doit présenter sa carte à l'entrée, pas d'upload nécessaire.
 
     @PrePersist
     public void prePersist() {
@@ -55,8 +81,15 @@ public class Reservation extends BaseEntity {
         if (statut == null) {
             statut = StatutReservation.EN_ATTENTE;
         }
-        if (seance != null && nombrePlace > 0) {
-            montantTotal = seance.getPrixTicket() * nombrePlace;
+        if (codeReservation == null) {
+            codeReservation = UUID.randomUUID().toString();
         }
     }
+
+    // Helper methods
+    public void addSiege(SiegeReserve siege) {
+        sieges.add(siege);
+        siege.setReservation(this);
+    }
+
 }

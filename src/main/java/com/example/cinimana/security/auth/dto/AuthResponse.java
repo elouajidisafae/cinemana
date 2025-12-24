@@ -4,8 +4,10 @@ public record AuthResponse(
         String token,
         String role,
         String nomComplet,
-        String email, // ✅ Ajout du email
-        String id, // ✅ CORRECTION : Doit être de type String
-        boolean premiereConnexion // ✅ Nouveau champ
+        String email,
+        String id,
+        boolean premiereConnexion,
+        String nom, // ✅ Added
+        String prenom // ✅ Added
 ) {
 }
