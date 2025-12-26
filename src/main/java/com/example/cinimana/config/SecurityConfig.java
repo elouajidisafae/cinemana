@@ -41,13 +41,14 @@ public class SecurityConfig {
     }
 
     // Authentication provider
-    @Bean
+    @Bean //Configurer l'AuthenticationProvider pour utiliser le CustomUserDetailsService et le PasswordEncoder
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
+    //CustomUserDetailsService est la classe qui permet à Spring Security de savoir comment récupérer un utilisateur depuis la base de données.
 
     // Authentication manager
     @Bean
@@ -59,18 +60,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
+        configuration.setAllowedOrigins(Arrays.asList(         // Ajouter les origines autorisées
                 "http://localhost:5173",
                 "http://localhost:3000",
                 "http://localhost:5174"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        configuration.setMaxAge(3600L);
+        configuration.setAllowedHeaders(List.of("*")); // Autoriser tous les en-têtes
+        configuration.setAllowCredentials(true); // Autoriser les cookies et les informations d'authentification
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));// Exposer les en-têtes nécessaires
+        configuration.setMaxAge(3600L); // Durée de vie de la configuration CORS en secondes
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration); // Appliquer cette configuration à toutes les URL
         return source;
     }
 
@@ -78,39 +79,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Activer CORS
+                // Activer CORS  qui permet d’autoriser explicitement le Frontend React à communiquer avec le Backend Spring Boot.
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // CSRF désactivé
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())   //désactivation de la protection CSRF car nous utilisons des tokens JWT
 
                 // Gestion des erreurs JWT
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtEntryPoint))
 
                 // Stateless session
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
+                //ici on configure Spring Security pour qu'il n'utilise pas de sessions HTTP pour stocker l'état d'authentification.
                 // Autorisations par rôle
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ CORRECTION : Lister explicitement les chemins publics.
-                        // /api/auth/reset-initial-password est exclu.
                         .requestMatchers(
                                 "/api/auth/client/login",
                                 "/api/auth/internal/login",
                                 "/api/auth/register",
                                 "/api/public/**",
+                                "/api/offres/public",
+                                "/api/client/reservations/*/confirm-presence", // Autoriser la confirmation sans login
+                                "/api/client/reservations/*/confirm",          // Autoriser le lien direct backend si utilisé
                                 "/test-email",
                                 "/", "/login", "/register", "/static/**", "/css/**", "/js/**", "/uploads/**")
                         .permitAll()
 
                         // Protected by role
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/offres/**").hasRole("ADMIN")
                         .requestMatchers("/api/commercial/**").hasRole("COMMERCIAL")
                         .requestMatchers("/api/caissier/**").hasRole("CAISSIER")
                         .requestMatchers("/api/client/**").hasRole("CLIENT")
 
-                        // ✅ TOUS les autres chemins (dont /api/auth/reset-initial-password) nécessitent
-                        // AUTHENTICATION.
+                        // Toute autre requête nécessite une authentification
                         .anyRequest().authenticated())
 
                 // Authentication provider + filtre JWT

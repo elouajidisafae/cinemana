@@ -25,7 +25,7 @@ public class AdminSalleService {
     private final UserService userService;
     private final IdGeneratorService idGeneratorService;
 
-    private SalleResponseDTO mapToDTO(Salle salle) {
+    private SalleResponseDTO mapToDTO(Salle salle) { // Mapper from Salle entity to SalleResponseDTO
         return new SalleResponseDTO(
                 salle.getId(),
                 salle.getNom(),

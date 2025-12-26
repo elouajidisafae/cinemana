@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+// Service for generating unique IDs for different entities
 @Service
 @RequiredArgsConstructor
 public class IdGeneratorService {

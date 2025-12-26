@@ -14,7 +14,7 @@ public class UserService {
 
     public Admin getCurrentAdmin() {
         // Récupère l'email/username de l'utilisateur authentifié
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName(); // SecurityContextHolder est une classe utilitaire pour accéder au contexte de sécurité actuel
 
         // IMPORTANT : S'assurer que le repository pour Admin existe
         return adminRepository.findByEmail(email)

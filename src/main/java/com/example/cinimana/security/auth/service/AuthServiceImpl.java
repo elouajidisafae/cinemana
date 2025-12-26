@@ -130,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
                 prenom);
     }
 
-    // Enregistrement client (inchangé)
+    // Enregistrement client
     @Override
     public AuthResponse register(RegisterRequest request) {
         if (clientRepository.existsByEmail(request.email()) ||
@@ -155,7 +155,7 @@ public class AuthServiceImpl implements AuthService {
         client.setNumeroTelephone(request.numeroTelephone());
         client.setDateNaissance(request.dateNaissance());
         client.setRole(Role.CLIENT);
-        clientRepository.save(client);
+        clientRepository.save(client); //Persistance via Spring Data JPA.
 
         logger.info("Nouvel utilisateur client enregistré avec email: {}", request.email());
         AuthResponse response = loginClient(new AuthRequest(request.email(), request.motDePasse()));

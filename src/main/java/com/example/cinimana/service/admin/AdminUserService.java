@@ -39,7 +39,7 @@ public class AdminUserService {
     private final PasswordGeneratorService passwordGeneratorService;
 
     // --- UTILS : LOG & MAPPING ---
-    private void logHistorique(Utilisateur user, TypeOperation operation) {
+    private void logHistorique(Utilisateur user, TypeOperation operation) {// Méthode utilitaire pour logger l'historique des opérations
         Admin currentAdmin = userService.getCurrentAdmin();
         HistoriqueUtilisateur historique = new HistoriqueUtilisateur();
         historique.setUtilisateur(user);
@@ -102,7 +102,7 @@ public class AdminUserService {
         };
 
         // Remplissage des données
-        // L'ID sera généré automatiquement par le listener @PrePersist
+        // L'ID sera généré automatiquement par le listener @PrePersist qui se trouve dans la classe Utilisateur
         user.setNom(dto.nom());
         user.setPrenom(dto.prenom());
         user.setEmail(dto.email());
@@ -131,11 +131,11 @@ public class AdminUserService {
         }
 
         logHistorique(user, TypeOperation.CREATION);
-        return mapToUtilisateurResponseDTO(user);
+        return mapToUtilisateurResponseDTO(user); // Retourner le DTO de réponse
     }
 
-    // --- 2. CRUD : MODIFICATION ---
-    @Transactional
+    //  MODIFICATION
+    @Transactional   // Assure la cohérence de la transaction
     public UtilisateurResponseDTO modifierUtilisateur(String id, UtilisateurRequestDTO dto) {
 
         Utilisateur user = utilisateurRepository.findById(id)
@@ -154,7 +154,8 @@ public class AdminUserService {
                 throw new RuntimeException("Cet email est déjà utilisé.");
             }
             user.setEmail(dto.email());
-        }
+        } //bien que le backend permette techniquement la modification de l'email avec les validations nécessaires,
+        // j'ai fait le choix de ne pas exposer cette fonctionnalité dans l'interface Frontend.
 
         user.setRole(dto.role());
 
@@ -210,17 +211,17 @@ public class AdminUserService {
         }
     }
 
-    // --- 4. CONSULTATION ---
-    @Transactional(readOnly = true)
+    // 4. CONSULTATION
+    @Transactional(readOnly = true) // on fait read only pour optimiser les performances pour que hibernate desactive le mecanisme de dirty checking
     public List<UtilisateurResponseDTO> findAllUsers(Boolean actif, Role role) {
         return utilisateurRepository.findUsersByFilters(actif, role)
-                .stream()
-                .map(this::mapToUtilisateurResponseDTO)
-                .collect(Collectors.toList());
+                .stream()// convertit la liste en flux pour le traitement
+                .map(this::mapToUtilisateurResponseDTO)// applique la fonction de mappage à chaque utilisateur
+                .collect(Collectors.toList());// collecte les résultats dans une liste
     }
 
     // --- 5. RESET MOT DE PASSE INITIAL ---
-    @Transactional
+    @Transactional // Assure la cohérence de la transaction
     public void performInitialPasswordResetByEmail(String email, String newPassword) {
         Utilisateur user = utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec email: " + email));
@@ -232,13 +233,13 @@ public class AdminUserService {
                             "une majuscule, une minuscule, un chiffre et un caractère spécial");
         }
 
-        // 🔹 Encoder le mot de passe avec BCrypt
+        //  Encoder le mot de passe avec BCrypt
         user.setMotDePasse(passwordEncoder.encode(newPassword)); // Assure-toi que passwordEncoder est injecté
 
-        // 🔹 Mettre premiereConnexion à false
+        //  Mettre premiereConnexion à false
         user.setPremiereConnexion(false);
 
-        // 🔹 Sauvegarder immédiatement dans la base
+        //  Sauvegarder immédiatement dans la base
         utilisateurRepository.saveAndFlush(user); // flush pour forcer la mise à jour
 
         logger.info("Mot de passe initial réinitialisé pour l'utilisateur: {}", email);

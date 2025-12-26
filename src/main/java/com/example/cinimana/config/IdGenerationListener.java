@@ -7,7 +7,7 @@ import com.example.cinimana.service.IdGeneratorService;
 import jakarta.persistence.PrePersist;
 
 public class IdGenerationListener {
-
+    // Méthode appelée avant la persistance d'une entité
     @PrePersist
     public void generateId(Object entity) {
         try {

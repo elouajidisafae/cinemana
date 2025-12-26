@@ -31,7 +31,7 @@ public class Reservation extends BaseEntity {
     private LocalDateTime dateReservation;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private StatutReservation statut;
 
     private String ticketPdfUrl; // URL d'accès au ticket PDF (ex: "/api/tickets/{codeReservation}")

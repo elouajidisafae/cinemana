@@ -14,5 +14,5 @@ public record UtilisateurResponseDTO(
         java.time.LocalDate dateEmbauche,
         Role role,
         boolean actif,
-        boolean premiereConnexion// ✅ CRUCIAL pour savoir si on doit proposer "Activer" ou "Désactiver"
+        boolean premiereConnexion
 ) {}

@@ -36,11 +36,11 @@ public class PDFService {
      */
     public byte[] generateReservationTicket(Reservation reservation) {
         try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            PdfWriter writer = new PdfWriter(outputStream);
-            PdfDocument pdf = new PdfDocument(writer);
-            Document document = new Document(pdf);
-
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(); // Create OutputStream
+            PdfWriter writer = new PdfWriter(outputStream); // Create PDF Writer
+            PdfDocument pdf = new PdfDocument(writer); // Create PDF Document
+            Document document = new Document(pdf); // Create Document
+            // Full-width design
             document.setMargins(0, 0, 0, 0); // Utilise des paddings internes pour le design full-width
 
             // === FOND DU BILLET (SIMULATION) ===
@@ -52,7 +52,7 @@ public class PDFService {
 
             // === CONTENU PRINCIPAL (PADDINGS) ===
             Div mainContent = new Div()
-                    .setPaddingTop(30)
+                    .setPaddingTop(30) //30 pixels de padding en haut
                     .setPaddingRight(50)
                     .setPaddingBottom(20)
                     .setPaddingLeft(50);
@@ -66,10 +66,10 @@ public class PDFService {
             // === SIÈGES & PRIX ===
             addPremiumSeatsAndPrice(mainContent, reservation);
 
-            document.add(mainContent);
+            document.add(mainContent); // Ajout du contenu principal au document
 
             // === LIGNE DE DÉCOUPE (Tear-off line) ===
-            addPremiumTearOffLine(document);
+            addPremiumTearOffLine(document); // Ligne de séparation
 
             // === SECTION QR CODE & VALIDATION ===
             Div validationSection = new Div()
@@ -77,14 +77,14 @@ public class PDFService {
                     .setPaddingRight(50)
                     .setPaddingBottom(40)
                     .setPaddingLeft(50);
-            addPremiumValidationSection(validationSection, reservation);
-            document.add(validationSection);
+            addPremiumValidationSection(validationSection, reservation); // Ajout du contenu de validation
+            document.add(validationSection); // Ajout de la section de validation au document
 
             // === PIED DE PAGE ===
             addPremiumFooter(document, reservation);
 
-            document.close();
-            return outputStream.toByteArray();
+            document.close(); // Fermer le document
+            return outputStream.toByteArray(); // Retourner le PDF en tant que tableau de bytes
 
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de la génération du ticket Premium: " + e.getMessage(), e);
@@ -137,7 +137,7 @@ public class PDFService {
                 .setMarginBottom(5)
                 .setFixedLeading(28));
 
-        String filmSpecs = String.format("%s  •  %d MINUTES  •  %s",
+        String filmSpecs = String.format("%s  •  %d MINUTES  •  %s", // Exemple: "ACTION  •  120 MINUTES  •  AGE: 16"
                 reservation.getSeance().getFilm().getGenre().toUpperCase(),
                 reservation.getSeance().getFilm().getDuree(),
                 reservation.getSeance().getFilm().getAgeLimite() != null

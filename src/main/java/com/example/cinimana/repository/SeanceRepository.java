@@ -21,7 +21,7 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     @Query("SELECT s FROM Seance s WHERE s.dateHeure >= :maintenant ORDER BY s.dateHeure ASC")
     List<Seance> findSeancesDisponibles(@Param("maintenant") LocalDateTime maintenant);
 
-    @Query("SELECT s FROM Seance s LEFT JOIN FETCH s.salle WHERE s.film.id = :filmId AND s.dateHeure >= :maintenant ORDER BY s.dateHeure ASC")
+    @Query("SELECT s FROM Seance s LEFT JOIN FETCH s.salle WHERE s.film.id = :filmId AND s.dateHeure >= :maintenant AND s.actif = true ORDER BY s.dateHeure ASC")
     List<Seance> findSeancesByFilmIdAfterDate(@Param("filmId") String filmId,
                                               @Param("maintenant") LocalDateTime maintenant);
 

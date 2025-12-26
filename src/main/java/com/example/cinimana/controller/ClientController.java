@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = { "http://localhost:5173", "http://localhost:3000",
         "http://localhost:5174" }, allowCredentials = "true")
 public class ClientController {
-
+    // --- PROFIL CLIENT ---
     private final ClientService clientService;
     private final com.example.cinimana.service.ReservationService reservationService;
     private final com.example.cinimana.service.PDFService pdfService;
@@ -72,7 +72,7 @@ public class ClientController {
         Reservation reservation = reservationService.createReservation(userDetails.getUsername(), request);
         return ResponseEntity.ok(mapToResponse(reservation));
     }
-
+    // Endpoint pour confirmer la présence (après arrivée au cinéma)
     @PutMapping("/reservations/{code}/confirm-presence")
     public ResponseEntity<?> confirmPresence(@PathVariable String code) {
         reservationService.confirmPresence(code);

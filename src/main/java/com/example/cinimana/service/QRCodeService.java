@@ -25,17 +25,17 @@ public class QRCodeService {
     public String generateQRCode(String codeReservation, int width, int height) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            BitMatrix bitMatrix = qrCodeWriter.encode(
-                    codeReservation,
-                    BarcodeFormat.QR_CODE,
+            BitMatrix bitMatrix = qrCodeWriter.encode( // Génération de la matrice du QR code
+                    codeReservation, // Contenu du QR code
+                    BarcodeFormat.QR_CODE, // Format du code
                     width,
                     height);
 
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream);
-            byte[] qrCodeBytes = outputStream.toByteArray();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(); // Flux de sortie pour stocker l'image
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream); // Écriture de l'image PNG dans le flux
+            byte[] qrCodeBytes = outputStream.toByteArray(); // Récupération des bytes de l'image
 
-            return Base64.getEncoder().encodeToString(qrCodeBytes);
+            return Base64.getEncoder().encodeToString(qrCodeBytes); //L’image est encodée en Base64 pour lenvoyer facilement via api
 
         } catch (WriterException | IOException e) {
             throw new RuntimeException("Erreur lors de la génération du QR code", e);

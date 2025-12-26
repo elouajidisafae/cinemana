@@ -23,10 +23,9 @@ public class ReservationService {
     private final SeanceRepository seanceRepository;
     private final ClientRepository clientRepository;
     private final OffreRepository offreRepository;
-    // Snacks removed
+
     private final SiegeReserveRepository siegeReserveRepository;
-    // SnackReservation removed
-    // SnackReservation removed
+
     private final EmailService emailService;
     private final PDFService pdfService;
 
@@ -44,9 +43,9 @@ public class ReservationService {
                 .orElseThrow(() -> new RuntimeException("Séance non trouvée"));
 
         // Règle : Réservation possible uniquement si > 4h avant
-        if (seance.getDateHeure().isBefore(LocalDateTime.now().plusHours(4))) {
+        if (seance.getDateHeure().isBefore(LocalDateTime.now().plusHours(3))) {
             throw new RuntimeException(
-                    "Les réservations ne sont plus possibles pour cette séance (délai de 4h dépassé)");
+                    "Les réservations ne sont plus possibles pour cette séance (délai de 3h dépassé)");
         }
 
         // 3. Valider la disponibilité des sièges
@@ -90,7 +89,7 @@ public class ReservationService {
             }
 
             reservation.setOffre(offre);
-            // Pas d'upload de preuve, le client doit la présenter sur place
+
 
             // Appliquer réduction
             if (offre.getPrix() > 0) {
@@ -100,7 +99,7 @@ public class ReservationService {
 
         double montantTotalSpectateurs = prixTicket * request.getNombrePlaces();
 
-        // --- SNACKS SUPPRIMÉS DE LA RÉSERVATION ---
+
 
         reservation.setMontantTotal(montantTotalSpectateurs);
 
@@ -118,7 +117,7 @@ public class ReservationService {
         }
         reservation.setSieges(sieges);
 
-        // --- SNACKS SUPPRIMÉS DE LA RÉSERVATION (Logique de sauvegarde retirée) ---
+
 
         // 9. Générer URL PDF et STOCKER LE CONTENU PDF EN BASE
         reservation.setTicketPdfUrl("/api/client/reservations/" + reservation.getCodeReservation() + "/ticket.pdf");
@@ -130,14 +129,14 @@ public class ReservationService {
 
             // Définir le répertoire de stockage
             String uploadDir = "tickets";
-            java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir);
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir); // relatif au répertoire de travail
             if (!java.nio.file.Files.exists(uploadPath)) {
-                java.nio.file.Files.createDirectories(uploadPath);
+                java.nio.file.Files.createDirectories(uploadPath); // Créer le répertoire s'il n'existe pas
             }
 
             // Nom du fichier unique
             String fileName = "ticket_" + reservation.getCodeReservation() + ".pdf";
-            java.nio.file.Path filePath = uploadPath.resolve(fileName);
+            java.nio.file.Path filePath = uploadPath.resolve(fileName); // Chemin complet du fichier
 
             // Écriture du fichier sur le disque
             java.nio.file.Files.write(filePath, pdfContent);
@@ -176,6 +175,10 @@ public class ReservationService {
 
         if (reservation.getStatut() == StatutReservation.ANNULEE) {
             throw new RuntimeException("Cette réservation a été annulée");
+        }
+
+        if (reservation.getStatut() == StatutReservation.CONFIRMEE_CLIENT) {
+            throw new RuntimeException("Cette réservation est déjà confirmée.");
         }
 
         reservation.setStatut(StatutReservation.CONFIRMEE_CLIENT);

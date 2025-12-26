@@ -20,7 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ScheduledTasksService {
-
+    //
     private static final Logger logger = LoggerFactory.getLogger(ScheduledTasksService.class);
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd MMMM yyyy à HH:mm");
 

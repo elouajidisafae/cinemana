@@ -22,27 +22,27 @@ public class JwtService {
     private JwtConfig jwtConfig;
 
     // Clé de signature HS256
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));
+    private SecretKey getSigningKey() {//HS256 nécessite une clé secrète
+        return Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));//UTF_8 pour éviter les problèmes d'encodage
     }
 
     // Génération du token avec role, iat, exp, jti
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails) {//il prend les info de l'utilisateur
         Map<String, Object> claims = new HashMap<>();
         String role = userDetails.getAuthorities().iterator().next().getAuthority();
         claims.put("role", role.replace("ROLE_", ""));
         claims.put("jti", UUID.randomUUID().toString()); // ID unique pour le token
-
-        return Jwts.builder()
-                .setClaims(claims)
+//iat indique quand le token est genere exp indique quand il expire
+        return Jwts.builder() //builder() pour construire le token
+                .setClaims(claims) //claims ajoute les informations personnalisées
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiration()))
-                .signWith(getSigningKey())
-                .compact();
+                .signWith(getSigningKey())//signature du token avec la clé secrète
+                .compact();//compact() génère le token final sous forme de chaîne
     }
 
-    // Extraction username
+    // Extraction username (email)
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }

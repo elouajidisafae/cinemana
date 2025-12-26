@@ -42,7 +42,7 @@ public class PasswordGeneratorService {
         // Mélanger pour éviter un pattern prévisible
         return shuffleString(password.toString());
     }
-
+// Mélange les caractères d'une chaîne de manière aléatoire
     private String shuffleString(String input) {
         char[] characters = input.toCharArray();
         for (int i = characters.length - 1; i > 0; i--) {

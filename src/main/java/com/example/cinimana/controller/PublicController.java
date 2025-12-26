@@ -27,14 +27,14 @@ public class PublicController {
     public ResponseEntity<FilmResponseDTO> getFilmDetails(@PathVariable String id) {
         return ResponseEntity.ok(publicService.getFilmDetails(id));
     }
-
+    // RÉCUPÉRER LES SÉANCES D'UN FILM POUR LES RÉSERVATIONS
     @GetMapping("/films/{id}/seances")
     public ResponseEntity<List<SeanceResponseDTO>> getFutureSeances(@PathVariable String id) {
         return ResponseEntity.ok(publicService.getFutureSeancesByFilm(id));
     }
 
-    // --- NOUVEAUX ENDPOINTS POUR RÉSERVATION ---
 
+    // RÉCUPÉRER LES DÉTAILS D'UNE SÉANCE
     @GetMapping("/seances/{id}")
     public ResponseEntity<SeanceResponseDTO> getSeanceDetails(@PathVariable Long id) {
         return ResponseEntity.ok(publicService.getSeanceDetails(id));

@@ -21,7 +21,7 @@ import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
-
+    //
     @Autowired
     private AdminRepository adminRepository;
 

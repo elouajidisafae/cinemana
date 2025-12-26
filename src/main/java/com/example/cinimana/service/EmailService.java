@@ -17,9 +17,9 @@ public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender mailSender;  // Service d'envoi d'emails
 
-    // ✅ Email de secours
+    //  Email de secours
     private static final String FALLBACK_EMAIL = "safaa.analisse1@gmail.com";
 
     // Domaine interne généré automatiquement
@@ -66,7 +66,7 @@ public class EmailService {
             throw new RuntimeException("Échec de l'envoi de l'email: " + e.getMessage());
         }
     }
-
+    // Construction du contenu HTML de l'email de bienvenue
     private String buildWelcomeHtml(String originalEmail, String loginId, String password, boolean isRealEmail) {
         String loginLabel = isRealEmail ? "EMAIL" : "ID CONNEXION";
         String loginValue = isRealEmail ? originalEmail : loginId;

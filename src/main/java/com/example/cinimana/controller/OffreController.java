@@ -16,7 +16,7 @@ public class OffreController {
     @Autowired
     private OffreService offreService;
 
-    // Public: Get all active offers
+
     @GetMapping("/public")
     public List<Offre> getActiveOffres() {
         return offreService.getActiveOffres();

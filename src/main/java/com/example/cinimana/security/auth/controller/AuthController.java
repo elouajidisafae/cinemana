@@ -8,16 +8,16 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.example.cinimana.dto.request.PasswordResetRequest; // ✅ NOUVEL IMPORT
+import com.example.cinimana.dto.request.PasswordResetRequest;
 import com.example.cinimana.service.admin.AdminUserService;
-import org.springframework.security.core.Authentication;// ✅ NOUVEL IMPORT
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
-
+    //ResponseEntity<AuthResponse> me permet de renvoyer une réponse HTTP complète à l’utilisateur après l’inscription ou la connexion.
     private final AuthService authService;
     private final AdminUserService adminUserService;
     // Login pour les clients
@@ -32,12 +32,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.loginInternal(request));
     }
 
-    // Enregistrement des clients uniquement
+    // Enregistrement des clients
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
-
+    // Réinitialisation du mot de passe initial pour les utilisateurs internes
     @PostMapping("/reset-initial-password")
     public ResponseEntity<Void> resetInitialPassword(
             @Valid @RequestBody PasswordResetRequest request,
@@ -47,8 +47,8 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
 
-        // ✅ Récupération de l'email depuis le JWT
-        String email = authentication.getName(); // c'est l'email du user
+        //  Récupération de l'email depuis le JWT
+        String email = authentication.getName(); // c'est l'email du user deja defini dans jwtservice et customuserdetailsservice
         String newPassword = request.newPassword();
 
         // Appel du service avec email au lieu de l'ID

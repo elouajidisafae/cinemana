@@ -17,7 +17,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.example.cinimana.security.user.CustomUserDetailsService;
 
 import java.io.IOException;
-
+//À chaque requête protégée, le `JwtAuthenticationFilter` entre en jeu :
+//Extraction : Il récupère le header `Authorization: Bearer <token>`.
+//Validation : Il utilise la clé secrète (définie dans `application.properties`) pour vérifier l'intégrité du jeton.
+//Injection : Si le token est valide, le filtre "injecte" l'utilisateur dans le `SecurityContextHolder`.
+//Autorisation : Spring Security vérifie ensuite si l'utilisateur injecté possède le rôle requis pour l'URL demandée.
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -40,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String token = authHeader.substring(7);
-        // ✅ email sera NULL si le token est invalide/expiré/mauvaise signature
+        //  email sera NULL si le token est invalide/expiré/mauvaise signature
         String email = jwtService.extractUsername(token);
 
         // 2. Vérification et chargement de l'utilisateur

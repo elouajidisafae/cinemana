@@ -108,6 +108,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     long countByStatutNot(StatutReservation statut);
 
+    @Query("SELECT COALESCE(SUM(r.nombrePlace), 0) FROM Reservation r WHERE r.seance.id = :seanceId AND r.statut <> :statutExclude")
+    Integer sumNombrePlacesBySeanceIdAndStatutNot(@Param("seanceId") Long seanceId,
+                                                  @Param("statutExclude") StatutReservation statutExclude);
+
     // --- CAISSIER STATISTICS ---
 
     long countByStatutAndDateValidationBetween(StatutReservation statut, LocalDateTime debut, LocalDateTime fin);
@@ -125,8 +129,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("fin") LocalDateTime fin);
 
     List<Reservation> findTop5ByStatutOrderByDateValidationDesc(StatutReservation statut);
-
-
 
     // --- CAISSIER SPECIFIC STATS ---
 

@@ -67,7 +67,6 @@ public class CommercialSeanceService {
         seance.setFilm(film);
         seance.setSalle(salle);
         seance.setCategorie(categorie);
-        // legacyPrixTicket removed as per user request to not modify models
 
         Seance savedSeance = seanceRepository.save(seance);
 
@@ -342,8 +341,6 @@ public class CommercialSeanceService {
     // ==================== MAPPING ====================
 
     private SeanceResponseDTO mapToSeanceResponseDTO(Seance seance) {
-        int placesReservees = 0;
-        int placesDispo = seance.getPlacesDisponibles();
 
         String filmTitre = "Film Inconnu";
         String filmGenre = "N/A";
@@ -363,8 +360,12 @@ public class CommercialSeanceService {
             salleNom = seance.getSalle().getNom() != null ? seance.getSalle().getNom() : "Salle Inconnue";
             salleId = seance.getSalle().getId() != null ? seance.getSalle().getId() : "N/A";
             salleCapacite = seance.getSalle().getCapacite();
-            placesReservees = salleCapacite - placesDispo;
         }
+
+        // FIX: Calculate places directly from DB to avoid lazy loading issues
+        int placesReservees = reservationRepository.sumNombrePlacesBySeanceIdAndStatutNot(seance.getId(),
+                StatutReservation.ANNULEE);
+        int placesDispo = Math.max(0, salleCapacite - placesReservees);
 
         String catNom = "Standard";
         Long catId = 0L;
@@ -503,7 +504,10 @@ public class CommercialSeanceService {
             currentDate = currentDate.plusDays(1);
         }
 
-        List<Seance> nextSeances = seanceRepository.findSeancesDisponibles(LocalDateTime.now()).stream()
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endOfDay = java.time.LocalDate.now().atTime(23, 59, 59);
+
+        List<Seance> nextSeances = seanceRepository.findByDateHeureBetween(now, endOfDay).stream()
                 .limit(5)
                 .collect(Collectors.toList());
 
@@ -584,4 +588,4 @@ public class CommercialSeanceService {
                         c.getPrixBase()))
                 .collect(Collectors.toList());
     }
-}
+}   

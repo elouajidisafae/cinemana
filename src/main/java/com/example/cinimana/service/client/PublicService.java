@@ -23,7 +23,7 @@ public class PublicService {
     private final com.example.cinimana.repository.SiegeReserveRepository siegeReserveRepository;
     private final com.example.cinimana.service.OffreService offreService;
 
-    private FilmResponseDTO mapFilmToDTO(Film film) {
+    private FilmResponseDTO mapFilmToDTO(Film film) {// Mapper simple Film -> FilmResponseDTO
         return new FilmResponseDTO(
                 film.getId(),
                 film.getTitre(),
@@ -89,9 +89,9 @@ public class PublicService {
     @Transactional(readOnly = true)
     public List<FilmResponseDTO> getAllActiveFilms() {
         return filmRepository.findByActif(true)
-                .stream()
-                .map(this::mapFilmToDTO)
-                .collect(Collectors.toList());
+                .stream()// Transforme la liste des entités Film en flux (Stream) pour pouvoir les traiter facilement.
+                .map(this::mapFilmToDTO)// Chaque entité Film est convertie en FilmResponseDTO.
+                .collect(Collectors.toList()); // Retourner la liste des DTOs
     }
 
     @Transactional(readOnly = true)

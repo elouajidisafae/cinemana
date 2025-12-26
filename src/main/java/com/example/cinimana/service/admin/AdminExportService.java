@@ -27,8 +27,8 @@ public class AdminExportService {
      */
     public byte[] exportHistoriqueToExcel(List<HistoriqueResponseDTO> entries) {
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Sheet sheet = workbook.createSheet("Historique");
+            ByteArrayOutputStream baos = new ByteArrayOutputStream(); // Create OutputStream
+            Sheet sheet = workbook.createSheet("Historique"); // Create Sheet
 
             // Header Style
             CellStyle headerStyle = workbook.createCellStyle();
@@ -41,7 +41,7 @@ public class AdminExportService {
             Row headerRow = sheet.createRow(0);
             String[] headers = { "ID Op", "Type Entité", "ID Entité", "Nom Entité", "Opération", "Date", "Admin",
                     "Infos" };
-            for (int i = 0; i < headers.length; i++) {
+            for (int i = 0; i < headers.length; i++) { // Create cells
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(headerStyle);
@@ -67,7 +67,7 @@ public class AdminExportService {
                 sheet.autoSizeColumn(i);
             }
 
-            workbook.write(baos);
+            workbook.write(baos); // Write to OutputStream
             return baos.toByteArray();
         } catch (IOException e) {
             logger.error("Error generating Excel for history: {}", e.getMessage());

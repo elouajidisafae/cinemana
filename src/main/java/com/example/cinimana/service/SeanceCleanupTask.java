@@ -26,7 +26,7 @@ public class SeanceCleanupTask {
      * Désactive les séances qui ont déjà commencé.
      * S'exécute toutes les 5 minutes (300 000 ms).
      */
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 300000) // Toutes les 5 minutes
     @Transactional
     public void deactivateExpiredSeances() {
         LocalDateTime now = LocalDateTime.now();

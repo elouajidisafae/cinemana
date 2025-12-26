@@ -43,26 +43,24 @@ public class AdminController {
     private final AdminSalleService adminSalleService;
     private final AdminExportService adminExportService;
 
-    // --- 1. CONSULTATION DES UTILISATEURS (Actifs, Inactifs, Tous) ---
+    // CONSULTATION DES UTILISATEURS (Actifs, Inactifs, Tous)
     @GetMapping("/users")
     public ResponseEntity<List<UtilisateurResponseDTO>> getAllUsers(
             @RequestParam(required = false) Boolean actif,
             @RequestParam(required = false) Role role) {
-
-        // ✅ Assurez-vous que l'appel est bien celui-ci :
         List<UtilisateurResponseDTO> users = adminUserService.findAllUsers(actif, role);
         return ResponseEntity.ok(users);
     }
 
-    // --- 2. AJOUT D'UN UTILISATEUR ---
+    // AJOUT D'UN UTILISATEUR
     @PostMapping("/users")
     public ResponseEntity<UtilisateurResponseDTO> createUser(@Valid @RequestBody UtilisateurRequestDTO dto) {
         return new ResponseEntity<>(adminUserService.ajouterUtilisateur(dto), HttpStatus.CREATED);
     }
 
-    // --- 3. MODIFICATION D'UN UTILISATEUR ---
+    // MODIFICATION D'UN UTILISATEUR
     @PutMapping("/users/{id}")
-    public ResponseEntity<UtilisateurResponseDTO> updateUser(@PathVariable String id,
+    public ResponseEntity<UtilisateurResponseDTO> updateUser(@PathVariable String id, // @pathvariable pour recuperer l'id dans l'url
                                                              @Valid @RequestBody UtilisateurRequestDTO dto) {
         return ResponseEntity.ok(adminUserService.modifierUtilisateur(id, dto));
     }
@@ -139,8 +137,8 @@ public class AdminController {
         return ResponseEntity.ok(dashboardService.getDashboardCharts());
     }
 
-    // --- NOUVEAUX ENDPOINTS HISTORIQUE & MONITORING ---
 
+    // ENDPOINTS HISTORIQUE AVEC FILTRAGE ET STATISTIQUES
     @GetMapping("/historique/users")
     public ResponseEntity<List<com.example.cinimana.dto.response.HistoriqueResponseDTO>> getFilteredUserHistory(
             @RequestParam(required = false) String search,
@@ -150,7 +148,7 @@ public class AdminController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         return ResponseEntity.ok(dashboardService.getFilteredUserHistory(search, operations, roles, start, end));
     }
-
+    //STATISTIQUES GLOBALES POUR L'HISTORIQUE DES UTILISATEURS
     @GetMapping("/historique/users/stats")
     public ResponseEntity<java.util.Map<String, Long>> getGlobalUserHistoryStats() {
         return ResponseEntity.ok(dashboardService.getGlobalUserHistoryStats());
@@ -234,8 +232,7 @@ public class AdminController {
         return ResponseEntity.ok(dashboardService.getFilteredClients(search, start, end));
     }
 
-    // --- ENDPOINTS EXPORT EXCEL ---
-
+    // ENDPOINTS EXPORT EXCEL cette methode génère la réponse HTTP pour le téléchargement du fichier Excel
     private ResponseEntity<byte[]> generateExcelResponse(byte[] content, String entityName) {
         String filename = entityName + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"))
                 + ".xlsx";
@@ -243,7 +240,7 @@ public class AdminController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
                 .contentType(
-                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))// MIME type pour les fichiers Excel
                 .body(content);
     }
 

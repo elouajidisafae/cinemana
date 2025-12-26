@@ -7,7 +7,7 @@ public record AuthResponse(
         String email,
         String id,
         boolean premiereConnexion,
-        String nom, // ✅ Added
-        String prenom // ✅ Added
+        String nom,
+        String prenom
 ) {
 }

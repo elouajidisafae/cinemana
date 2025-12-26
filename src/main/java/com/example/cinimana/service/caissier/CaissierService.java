@@ -254,10 +254,26 @@ public class CaissierService {
         response.put("clientEmail", resa.getClient().getEmail());
         response.put("film", resa.getSeance().getFilm().getTitre());
         response.put("horaire", resa.getSeance().getDateHeure().toLocalTime().toString());
+        response.put("dateSeance", resa.getSeance().getDateHeure().toLocalDate().toString());
         response.put("salle", resa.getSeance().getSalle().getNom());
         response.put("places", resa.getNombrePlace());
         response.put("montant", resa.getMontantTotal());
         response.put("dateReservation", resa.getDateReservation());
+        response.put("statutActuel", resa.getStatut());
+
+        // Liste des sièges
+        List<String> siegeStrList = resa.getSieges().stream()
+                .map(s -> "R" + s.getRangee() + "-N" + s.getNumero())
+                .toList();
+        response.put("sieges", siegeStrList);
+
+        // Détails de l'offre
+        if (resa.getOffre() != null) {
+            Map<String, Object> offreInfo = new HashMap<>();
+            offreInfo.put("titre", resa.getOffre().getTitre());
+            offreInfo.put("prixApplique", resa.getOffre().getPrix());
+            response.put("offre", offreInfo);
+        }
 
         // Intégration de la catégorie comme demandé
         if (resa.getSeance().getCategorie() != null) {

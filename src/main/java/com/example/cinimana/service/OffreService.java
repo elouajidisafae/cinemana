@@ -82,7 +82,7 @@ public class OffreService {
         offreRepository.save(offre);
         logHistory(offre, com.example.cinimana.model.TypeOperation.ACTIVATION);
     }
-
+//
     /**
      * Retourne les offres applicables selon le contexte
      *
